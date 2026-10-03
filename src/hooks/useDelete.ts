@@ -1,0 +1,77 @@
+import {
+  useState,
+} from "react";
+
+import { AxiosError } from "axios";
+
+import { api } from "../api/api";
+
+interface UseDeleteState {
+  loading: boolean;
+  error: string | null;
+
+  remove: (
+    url: string,
+  ) => Promise<boolean>;
+
+  reset: () => void;
+}
+
+const getErrorMessage = (error: unknown): string => {
+  if (error instanceof AxiosError) {
+    const data = error.response?.data;
+
+    if (data?.detail) {
+      return data.detail;
+    }
+
+    if (data && typeof data === "object") {
+      return Object.values(data)
+        .flat()
+        .join(" ");
+    }
+
+    return error.message;
+  }
+
+  return "Something went wrong.";
+};
+
+export function useDelete(): UseDeleteState {
+  const [loading, setLoading] = useState(false);
+
+  const [error, setError] = useState<string | null>(
+    null,
+  );
+
+  const remove = async (
+    url: string,
+  ): Promise<boolean> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await api.delete(url);
+
+      return true;
+    } catch (error) {
+      setError(getErrorMessage(error));
+
+      return false;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const reset = () => {
+    setError(null);
+    setLoading(false);
+  };
+
+  return {
+    loading,
+    error,
+    remove,
+    reset,
+  };
+}
