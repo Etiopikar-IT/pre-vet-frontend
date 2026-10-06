@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  /* ---------- Brand (forest green) ---------- */
+  --color-brand-50:  #EEF4F2;
+  --color-brand-100: #D6E3DF;
+  --color-brand-200: #AFC8C2;
+  --color-brand-300: #85ACA4;
+  --color-brand-400: #5D8E85;
+  --color-brand-500: #1F4A44;
+  --color-brand-600: #1A3F3A;
+  --color-brand-700: #153430;
+  --color-brand-800: #102927;
+  --color-brand-900: #0A1F1D;
+
+  /* ---------- Surfaces ---------- */
+  --color-page:    #F3F2EF;
+  --color-surface: #FFFFFF;
+
+  /* ---------- Ink (text) ---------- */
+  --color-ink-100: #F3F2EF;
+  --color-ink-200: #D9D9D9;
+  --color-ink-300: #B3B3B3;
+  --color-ink-400: #8C8C8C;
+  --color-ink-500: #666666;
+  --color-ink-600: #4D4D4D;
+  --color-ink-700: #333333;
+  --color-ink-800: #191919;
+  --color-ink-900: #000000;
+
+  /* ---------- Line / border ---------- */
+  --color-line: #E0DFDC;
+
+  /* ---------- Feedback ---------- */
+  --color-success: #057642;
+  --color-warning: #B24020;
+  --color-danger:  #B24020;
+
+  /* ---------- Public landing page palette ---------- */
+  --public-paper: #F6F3EC;
+  --public-paper-raised: #EFEADC;
+  --public-ink: #181A16;
+  --public-gold: #B0742E;
+  --public-teal: #1F4A44;
+  --public-line: rgba(24, 26, 22, 0.14);
+  --public-error: #A13D2B;
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-page);
+    color: var(--color-ink-800);
+    -webkit-font-smoothing: antialiased;
+  }
+}

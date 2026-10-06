@@ -5,6 +5,8 @@ export interface User {
   email: string;
   user_type: UserType;
   is_active: boolean;
+  has_profile: boolean;   
+  company_id: number | null;
   created_at: string;
   updated_at: string;
 }

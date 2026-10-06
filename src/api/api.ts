@@ -7,9 +7,10 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 export const api = axios.create({
   baseURL: API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // NOTE: Do NOT set a default Content-Type here.
+  // Axios will set "application/json" automatically for
+  // plain objects, and let the browser set the multipart
+  // boundary for FormData.
 });
 
 let isRefreshing = false;
@@ -40,6 +41,14 @@ api.interceptors.request.use(
 
     if (accessToken) {
       config.headers.Authorization = `Bearer ${accessToken}`;
+    }
+
+    // If we're sending FormData, let the browser set
+    // Content-Type so the multipart boundary is included.
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    } else if (!config.headers["Content-Type"]) {
+      config.headers["Content-Type"] = "application/json";
     }
 
     return config;

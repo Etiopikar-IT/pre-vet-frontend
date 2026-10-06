@@ -13,6 +13,9 @@ export const endpoints = {
   accounts: {
     company: "/accounts/company/",
     jobSeeker: "/accounts/job-seeker/",
+    notifications: "/accounts/notifications/",
+    notificationsUnreadCount: "/accounts/notifications/unread_count/",
+    notificationsMarkAllRead: "/accounts/notifications/mark_all_read/",
   },
 
   jobs: {

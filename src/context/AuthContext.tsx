@@ -7,8 +7,6 @@ import {
   useState,
 } from "react";
 
-import axios from "axios";
-
 import { api } from "../api/api";
 import { endpoints } from "../api/endpoints";
 
@@ -55,12 +53,11 @@ export function AuthProvider({
   const [loading, setLoading] =
     useState(true);
 
+  // Fetch the currently authenticated user
   const fetchCurrentUser = useCallback(
     async () => {
       const accessToken =
-        localStorage.getItem(
-          "access_token",
-        );
+        localStorage.getItem("access_token");
 
       if (!accessToken) {
         setUser(null);
@@ -76,13 +73,8 @@ export function AuthProvider({
 
         setUser(response.data);
       } catch {
-        localStorage.removeItem(
-          "access_token",
-        );
-
-        localStorage.removeItem(
-          "refresh_token",
-        );
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
 
         setUser(null);
       } finally {
@@ -92,17 +84,19 @@ export function AuthProvider({
     [],
   );
 
+  // Check authentication when the app starts
   useEffect(() => {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
+  // Login
   const login = async (
     credentials: LoginRequest,
   ): Promise<boolean> => {
     try {
       const response =
-        await axios.post<LoginResponse>(
-          `${import.meta.env.VITE_API_URL}${endpoints.auth.login}`,
+        await api.post<LoginResponse>(
+          endpoints.auth.login,
           credentials,
         );
 
@@ -121,6 +115,7 @@ export function AuthProvider({
         refresh,
       );
 
+      // Fetch the logged-in user
       const userResponse =
         await api.get<User>(
           endpoints.auth.me,
@@ -130,13 +125,8 @@ export function AuthProvider({
 
       return true;
     } catch {
-      localStorage.removeItem(
-        "access_token",
-      );
-
-      localStorage.removeItem(
-        "refresh_token",
-      );
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
 
       setUser(null);
 
@@ -144,6 +134,7 @@ export function AuthProvider({
     }
   };
 
+  // Register
   const register = async (
     data: RegisterRequest,
   ): Promise<boolean> => {
@@ -159,14 +150,10 @@ export function AuthProvider({
     }
   };
 
+  // Logout
   const logout = () => {
-    localStorage.removeItem(
-      "access_token",
-    );
-
-    localStorage.removeItem(
-      "refresh_token",
-    );
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
 
     setUser(null);
   };
@@ -174,7 +161,6 @@ export function AuthProvider({
   const value: AuthContextType = {
     user,
     loading,
-
     isAuthenticated: !!user,
 
     login,
