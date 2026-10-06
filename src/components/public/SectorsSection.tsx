@@ -19,7 +19,7 @@ export default function SectorsSection() {
           className="border-t"
           style={{ borderColor: "var(--public-line)" }}
         >
-          {CONFIG.sectors.map((sector, idx) => (
+          {CONFIG.sectors.map((sector, _) => (
             <Reveal
               key={sector.name}
               className="-mx-5 rounded-md border-b px-5 py-6 transition-all hover:translate-x-1"

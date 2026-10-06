@@ -8,7 +8,7 @@ interface HeroProps {
 }
 
 export default function Hero({
-  onJoinClick,
+ 
   onProcessClick,
 }: HeroProps) {
   const names = CONFIG.sectors.map((s) => s.name);
