@@ -38,7 +38,6 @@ function HamburgerButton({ onClick }: { onClick: () => void }) {
 }
 
 export default function Header({
-  notificationCount = 0,
   onMenuClick,
 }: HeaderProps) {
   const { user, isAuthenticated, logout } = useAuth();
