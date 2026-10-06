@@ -12,10 +12,10 @@ import EmploymentTypeBadge from "../../components/jobs/jobDetail/EmploymentTypeB
 import ApprovalStatusBadge from "../../components/profile/ApprovalStatusBadge";
 
 interface CompanyProfileData {
-  id: number;
+  id: string;
   company_name: string;
   logo: string | null;
-  cover_photo?: string | null;
+  banner: string | null;
   description: string;
   industry: string;
   website: string;
@@ -26,9 +26,9 @@ interface CompanyProfileData {
 }
 
 interface CompanyJobItem {
-  id: number;
-  company: number;
-  company_id: number;
+  id: string;
+  company: string;
+  company_id: string;
   company_name: string;
   title: string;
   description: string;
@@ -82,7 +82,7 @@ export default function CompanyJobsPage() {
     error: jobsError,
   } = useData<CompanyJobItem[]>(endpoints.jobs.list);
 
-  const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (profileLoading || jobsLoading) {
     return <LoadingSpinner label="Loading your jobs..." />;
@@ -99,7 +99,7 @@ export default function CompanyJobsPage() {
   }
 
   const count = jobs?.length ?? 0;
-  const coverSrc = profile?.cover_photo || DEFAULT_COVER;
+  const coverSrc = profile?.banner || DEFAULT_COVER;
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-page pb-12">
@@ -111,16 +111,11 @@ export default function CompanyJobsPage() {
           className="absolute inset-0 h-full w-full object-cover"
         />
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-900/95 via-brand-800/70 to-brand-600/30" />
-
-        {/* Subtle radial highlight for depth */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_55%)]" />
 
-        {/* Overlay content — logo + info aligned to bottom-left */}
         <div className="absolute inset-x-0 bottom-0">
           <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 pb-8 sm:flex-row sm:items-end sm:justify-between">
-            {/* Left: logo + name + subtitle */}
             <div className="flex items-end gap-4 sm:gap-5">
               {profile?.logo ? (
                 <img
@@ -181,7 +176,6 @@ export default function CompanyJobsPage() {
               </div>
             </div>
 
-            {/* Right: actions */}
             <div className="flex shrink-0 flex-wrap gap-2">
               <Link
                 to="/company/jobs/new"
@@ -203,7 +197,6 @@ export default function CompanyJobsPage() {
 
       {/* ---------- Content below ---------- */}
       <div className="mx-auto max-w-5xl px-6 pt-8">
-        {/* Header row */}
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-2xl font-bold text-ink-800">
@@ -216,7 +209,6 @@ export default function CompanyJobsPage() {
           </div>
         </div>
 
-        {/* Approval banner */}
         {profile?.approval_status &&
           profile.approval_status !== "APPROVED" && (
             <div
@@ -240,7 +232,6 @@ export default function CompanyJobsPage() {
             </div>
           )}
 
-        {/* Jobs list */}
         {count === 0 ? (
           <EmptyState
             title="You haven't posted any jobs yet"
@@ -406,8 +397,6 @@ export default function CompanyJobsPage() {
     </div>
   );
 }
-
-/* ---------- Local pieces ---------- */
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (

@@ -32,6 +32,7 @@ export default function AuthedNav({ user, onLogout }: AuthedNavProps) {
       <ProfileDropdown
         email={user.email}
         displayName={displayName}
+        avatarUrl={user.avatar_url}
         roleLabel={roleLabel}
         profilePath={profilePath}
         profileEditPath={profileEditPath}

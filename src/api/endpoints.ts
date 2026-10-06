@@ -27,4 +27,8 @@ export const endpoints = {
     list: "/applications/",
     detail: (id: number | string) => `/applications/${id}/`,
   },
+  news: {
+    list: "/news/",
+    detail: (slug: string) => `/news/${slug}/`,
+  },
 } as const;

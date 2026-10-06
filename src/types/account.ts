@@ -7,6 +7,7 @@ export interface CompanyProfile {
   id: number;
   company_name: string;
   logo: string | null;
+  banner: string | null;
   description: string;
   industry: string;
   website: string;
@@ -23,6 +24,7 @@ export interface JobSeekerProfile {
   first_name: string;
   last_name: string;
   profile_photo: string | null;
+  banner: string | null;
   phone: string;
   location: string;
   professional_title: string;

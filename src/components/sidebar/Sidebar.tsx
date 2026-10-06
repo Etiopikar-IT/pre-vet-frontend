@@ -13,15 +13,21 @@ import SidebarFooter from "./SidebarFooter";
 interface SidebarProps {
   open: boolean;
   onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }
 
-export default function Sidebar({ open, onClose }: SidebarProps) {
+export default function Sidebar({
+  open,
+  onClose,
+  collapsed,
+  onToggleCollapse,
+}: SidebarProps) {
   const location = useLocation();
   const { user } = useAuth();
 
   const isCompany = user?.user_type === "COMPANY";
 
-  // Unread notification count for the sidebar badge
   const { data: unread } = useData<{ count: number }>(
     endpoints.accounts.notificationsUnreadCount,
   );
@@ -46,6 +52,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
   return (
     <>
+      {/* Mobile backdrop */}
       {open && (
         <div
           className="fixed inset-0 z-40 bg-black/40 md:hidden"
@@ -54,21 +61,24 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         />
       )}
 
+      {/* Sidebar panel */}
       <aside
         className={[
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-brand-600 transition-transform duration-200 ease-out",
+          "fixed inset-y-0 left-0 z-50 flex flex-col bg-brand-600 transition-[width,transform] duration-200 ease-out",
+          collapsed ? "w-20" : "w-72",
           open ? "translate-x-0" : "-translate-x-full",
           "md:translate-x-0",
         ].join(" ")}
         onClick={stopPropagation}
       >
-        <SidebarLogo />
+        <SidebarLogo collapsed={collapsed} />
 
         <div className="flex-1 overflow-y-auto px-3">
-          <SidebarSection>
+          <SidebarSection collapsed={collapsed}>
             <SidebarItem
               to="/dashboard"
               label="Dashboard"
+              collapsed={collapsed}
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <rect x="3" y="3" width="7" height="9" />
@@ -82,6 +92,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <SidebarItem
               to="/jobs"
               label="Search jobs"
+              collapsed={collapsed}
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <circle cx="11" cy="11" r="7" />
@@ -94,6 +105,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <SidebarItem
                 to="/company/jobs"
                 label="Posted jobs"
+                collapsed={collapsed}
                 icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                     <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
@@ -105,6 +117,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <SidebarItem
                 to="/applications"
                 label="Applications"
+                collapsed={collapsed}
                 icon={
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -117,10 +130,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             )}
           </SidebarSection>
 
-          <SidebarSection title="Stay updated">
+          <SidebarSection title="Stay updated" collapsed={collapsed}>
             <SidebarItem
               to="/notifications"
               label="Notifications"
+              collapsed={collapsed}
               badge={unreadCount}
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
@@ -133,6 +147,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <SidebarItem
               to="/news"
               label="News"
+              collapsed={collapsed}
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
                   <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
@@ -145,7 +160,33 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
           </SidebarSection>
         </div>
 
-        <SidebarFooter />
+        {/* Collapse toggle — desktop only */}
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="hidden border-t border-white/10 py-3 text-xs font-medium text-white/70 transition hover:bg-white/5 hover:text-white md:block"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        >
+          <span className="flex items-center justify-center gap-2">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`h-4 w-4 transition-transform ${
+                collapsed ? "rotate-180" : ""
+              }`}
+            >
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            {!collapsed && <span>Collapse</span>}
+          </span>
+        </button>
+
+        <SidebarFooter collapsed={collapsed} />
       </aside>
     </>
   );

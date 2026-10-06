@@ -16,14 +16,15 @@ export default function UserAvatar({
   size = "sm",
   className = "",
 }: UserAvatarProps) {
-  const sizeClass = size === "sm" ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm";
+  const sizeClass =
+    size === "sm" ? "h-8 w-8 text-xs" : "h-10 w-10 text-sm";
 
   if (src) {
     return (
       <img
         src={src}
         alt={email}
-        className={`shrink-0 rounded-full object-cover ${sizeClass} ${className}`}
+        className={`shrink-0 rounded-full border border-line object-cover ${sizeClass} ${className}`}
       />
     );
   }

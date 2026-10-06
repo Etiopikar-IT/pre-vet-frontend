@@ -2,12 +2,18 @@ import { type FormEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { useCreate } from "../../hooks/useCreate";
+import { useData } from "../../hooks/useData";
 import { endpoints } from "../../api/endpoints";
+import {
+  type CompanyProfileData,
+  missingProfileFields,
+} from "../../utils/CompanyProfile";
 
+import LoadingSpinner from "../../components/common/LoadingSpinner";
 import StatusBanner from "../../components/common/StatusBanner";
 
 interface Job {
-  id: number;
+  id: string;
   title: string;
   description: string;
   requirements: string;
@@ -35,11 +41,14 @@ const inputClass =
 const labelClass =
   "mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-500";
 
-type SectionId = "role" | "description" | "compensation";
-
 export default function JobCreatePage() {
   const navigate = useNavigate();
   const { create, loading, error, reset } = useCreate<Job>();
+
+  const {
+    data: profile,
+    loading: profileLoading,
+  } = useData<CompanyProfileData>(endpoints.accounts.company);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -55,11 +64,6 @@ export default function JobCreatePage() {
   });
 
   const [success, setSuccess] = useState("");
-  const [openSection, setOpenSection] = useState<SectionId | null>("role");
-
-  const toggleSection = (id: SectionId) => {
-    setOpenSection((prev) => (prev === id ? null : id));
-  };
 
   const handleChange = (
     event: React.ChangeEvent<
@@ -102,41 +106,168 @@ export default function JobCreatePage() {
     }
   };
 
-  /* -------- Section summaries (shown when collapsed) -------- */
+  /* --- profile guards --- */
 
-  const summaries: Record<SectionId, string> = {
-    role:
-      formData.title || formData.location
-        ? [formData.title, formData.location].filter(Boolean).join(" · ")
-        : "Job title, location and employment type",
-    description:
-      formData.description || formData.responsibilities || formData.requirements
-        ? "Content added"
-        : "About the role, responsibilities and requirements",
-    compensation:
-      formData.salary_min || formData.salary_max
-        ? `${formData.salary_currency || "ETB"} ${
-            formData.salary_min || "0"
-          }–${formData.salary_max || "0"}`
-        : "Salary range and application deadline",
-  };
+  if (profileLoading) {
+    return <LoadingSpinner label="Checking your profile..." />;
+  }
 
-  /* -------- salary preview -------- */
-  const salaryPreview = (() => {
-    const min = formData.salary_min ? Number(formData.salary_min) : null;
-    const max = formData.salary_max ? Number(formData.salary_max) : null;
-    const cur = formData.salary_currency || "ETB";
-    const fmt = (n: number) => new Intl.NumberFormat().format(n);
-    if (min != null && max != null) return `${cur} ${fmt(min)} – ${fmt(max)}`;
-    if (min != null) return `${cur} ${fmt(min)}+`;
-    if (max != null) return `Up to ${cur} ${fmt(max)}`;
-    return "Not specified";
-  })();
+  if (!profile) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-12">
+        <div className="mx-auto max-w-2xl">
+          <div className="rounded-2xl border border-line bg-surface p-8">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+
+            <h1 className="text-2xl font-bold text-ink-800">
+              You need a company profile first
+            </h1>
+
+            <p className="mt-2 text-sm leading-relaxed text-ink-500">
+              Before you can post a job, we need a few details about your
+              company — name, industry, description, address, and phone.
+              It only takes a minute.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                to="/company/create-profile"
+                className="rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
+              >
+                Create company profile
+              </Link>
+
+              <Link
+                to="/dashboard"
+                className="rounded-xl border border-line px-6 py-3 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
+              >
+                Back to dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const missing = missingProfileFields(profile);
+
+  if (missing.length > 0) {
+    return (
+      <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-12">
+        <div className="mx-auto max-w-2xl">
+          <div className="rounded-2xl border border-line bg-surface p-8">
+            <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+                <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+            </div>
+
+            <h1 className="text-2xl font-bold text-ink-800">
+              Complete your profile to post jobs
+            </h1>
+
+            <p className="mt-2 text-sm leading-relaxed text-ink-500">
+              Your company profile is missing a few required details. Add
+              them and you can start posting jobs right away.
+            </p>
+
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              <p className="font-medium">Still needed:</p>
+              <ul className="mt-1.5 list-disc pl-5 text-amber-800/80">
+                {missing.map((field) => (
+                  <li key={field}>{field}</li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                to="/company/profile/edit"
+                className="rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
+              >
+                Complete profile
+              </Link>
+
+              <Link
+                to="/company/jobs"
+                className="rounded-xl border border-line px-6 py-3 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
+              >
+                My jobs
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (profile.approval_status && profile.approval_status !== "APPROVED") {
+    const rejected = profile.approval_status === "REJECTED";
+    return (
+      <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-12">
+        <div className="mx-auto max-w-2xl">
+          <div className="rounded-2xl border border-line bg-surface p-8">
+            <div
+              className={`mb-5 flex h-12 w-12 items-center justify-center rounded-2xl ${
+                rejected
+                  ? "bg-red-50 text-red-600"
+                  : "bg-amber-50 text-amber-600"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+
+            <h1 className="text-2xl font-bold text-ink-800">
+              {rejected
+                ? "Your company profile was rejected"
+                : "Your company profile is pending approval"}
+            </h1>
+
+            <p className="mt-2 text-sm leading-relaxed text-ink-500">
+              {rejected
+                ? "Update your profile to have it reviewed again. Once approved, you'll be able to post jobs."
+                : "An admin will review your profile shortly. Once it's approved, you'll be able to post jobs."}
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {rejected && (
+                <Link
+                  to="/company/profile/edit"
+                  className="rounded-xl bg-brand-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
+                >
+                  Edit profile
+                </Link>
+              )}
+
+              <Link
+                to="/company/profile"
+                className="rounded-xl border border-line px-6 py-3 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
+              >
+                View profile
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-10">
       <div className="mx-auto max-w-5xl">
-        {/* Breadcrumb */}
         <nav className="mb-4 flex items-center gap-1.5 text-xs text-ink-500">
           <Link to="/company/jobs" className="hover:text-brand-600">
             My jobs
@@ -145,7 +276,6 @@ export default function JobCreatePage() {
           <span className="text-ink-700">Post a new job</span>
         </nav>
 
-        {/* Page header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-ink-800">
@@ -164,7 +294,6 @@ export default function JobCreatePage() {
           </Link>
         </div>
 
-        {/* Banners */}
         {error && (
           <StatusBanner variant="error" className="mb-5">
             {error}
@@ -177,21 +306,11 @@ export default function JobCreatePage() {
           </StatusBanner>
         )}
 
-        {/* Two-column layout: form + preview */}
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-            {/* ---------- LEFT: collapsible sections ---------- */}
             <div className="space-y-4">
-              {/* Section 1: Role */}
-              <CollapsibleSection
-                id="role"
-                number={1}
-                title="Role"
-                description="Basic details about the position."
-                summary={summaries.role}
-                isOpen={openSection === "role"}
-                onToggle={toggleSection}
-              >
+              {/* Role */}
+              <FormCard number={1} title="Role" description="Basic details about the position.">
                 <div className="grid gap-5">
                   <div>
                     <label htmlFor="title" className={labelClass}>
@@ -226,10 +345,7 @@ export default function JobCreatePage() {
                     </div>
 
                     <div>
-                      <label
-                        htmlFor="employment_type"
-                        className={labelClass}
-                      >
+                      <label htmlFor="employment_type" className={labelClass}>
                         Employment type
                       </label>
                       <select
@@ -248,18 +364,10 @@ export default function JobCreatePage() {
                     </div>
                   </div>
                 </div>
-              </CollapsibleSection>
+              </FormCard>
 
-              {/* Section 2: Description */}
-              <CollapsibleSection
-                id="description"
-                number={2}
-                title="Description"
-                description="Help candidates understand the role."
-                summary={summaries.description}
-                isOpen={openSection === "description"}
-                onToggle={toggleSection}
-              >
+              {/* Description */}
+              <FormCard number={2} title="Description" description="Help candidates understand the role.">
                 <div className="space-y-5">
                   <div>
                     <label htmlFor="description" className={labelClass}>
@@ -278,10 +386,7 @@ export default function JobCreatePage() {
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="responsibilities"
-                      className={labelClass}
-                    >
+                    <label htmlFor="responsibilities" className={labelClass}>
                       Responsibilities
                     </label>
                     <textarea
@@ -310,18 +415,10 @@ export default function JobCreatePage() {
                     />
                   </div>
                 </div>
-              </CollapsibleSection>
+              </FormCard>
 
-              {/* Section 3: Compensation */}
-              <CollapsibleSection
-                id="compensation"
-                number={3}
-                title="Compensation & deadline"
-                description="Optional, but helps candidates self-qualify."
-                summary={summaries.compensation}
-                isOpen={openSection === "compensation"}
-                onToggle={toggleSection}
-              >
+              {/* Compensation */}
+              <FormCard number={3} title="Compensation & deadline" description="Optional, but helps candidates self-qualify.">
                 <div className="grid gap-5 sm:grid-cols-3">
                   <div>
                     <label htmlFor="salary_min" className={labelClass}>
@@ -356,10 +453,7 @@ export default function JobCreatePage() {
                   </div>
 
                   <div>
-                    <label
-                      htmlFor="salary_currency"
-                      className={labelClass}
-                    >
+                    <label htmlFor="salary_currency" className={labelClass}>
                       Currency
                     </label>
                     <input
@@ -374,10 +468,7 @@ export default function JobCreatePage() {
                   </div>
 
                   <div className="sm:col-span-3">
-                    <label
-                      htmlFor="application_deadline"
-                      className={labelClass}
-                    >
+                    <label htmlFor="application_deadline" className={labelClass}>
                       Application deadline
                     </label>
                     <input
@@ -393,9 +484,8 @@ export default function JobCreatePage() {
                     </p>
                   </div>
                 </div>
-              </CollapsibleSection>
+              </FormCard>
 
-              {/* Actions - desktop */}
               <div className="hidden items-center justify-end gap-3 border-t border-line pt-6 lg:flex">
                 <Link
                   to="/company/jobs"
@@ -414,7 +504,6 @@ export default function JobCreatePage() {
               </div>
             </div>
 
-            {/* ---------- RIGHT: live preview ---------- */}
             <aside className="space-y-4">
               <div className="rounded-2xl border border-line bg-surface p-5">
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-500">
@@ -422,30 +511,27 @@ export default function JobCreatePage() {
                 </h3>
 
                 <div className="space-y-3">
+                  <PreviewRow label="Title" value={formData.title || "Untitled role"} />
+                  <PreviewRow label="Location" value={formData.location || "Not specified"} />
+                  <PreviewRow label="Type" value={formData.employment_type.replace("_", " ")} />
                   <PreviewRow
-                    label="Title"
-                    value={formData.title || "Untitled role"}
+                    label="Salary"
+                    value={
+                      formData.salary_min || formData.salary_max
+                        ? `${formData.salary_currency || "ETB"} ${
+                            formData.salary_min || "0"
+                          } – ${formData.salary_max || "0"}`
+                        : "Not specified"
+                    }
                   />
-                  <PreviewRow
-                    label="Location"
-                    value={formData.location || "Not specified"}
-                  />
-                  <PreviewRow
-                    label="Type"
-                    value={formData.employment_type.replace("_", " ")}
-                  />
-                  <PreviewRow label="Salary" value={salaryPreview} />
                   <PreviewRow
                     label="Deadline"
                     value={
                       formData.application_deadline
-                        ? new Date(
-                            formData.application_deadline,
-                          ).toLocaleDateString(undefined, {
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                          })
+                        ? new Date(formData.application_deadline).toLocaleDateString(
+                            undefined,
+                            { year: "numeric", month: "short", day: "numeric" },
+                          )
                         : "Open until filled"
                     }
                   />
@@ -463,14 +549,13 @@ export default function JobCreatePage() {
                 </div>
                 <p className="text-xs leading-relaxed text-brand-700/80">
                   Once submitted, your job goes to an admin for review.
-                  You'll see its status on the <strong>My jobs</strong>{" "}
-                  page. You can edit and resubmit at any time.
+                  You'll see its status on the <strong>My jobs</strong> page.
+                  You can edit and resubmit at any time.
                 </p>
               </div>
             </aside>
           </div>
 
-          {/* Actions - mobile */}
           <div className="mt-6 flex items-center justify-end gap-3 border-t border-line pt-6 lg:hidden">
             <Link
               to="/company/jobs"
@@ -493,90 +578,32 @@ export default function JobCreatePage() {
   );
 }
 
-/* ---------- Local components ---------- */
-
-interface CollapsibleSectionProps {
-  id: SectionId;
-  number: number;
-  title: string;
-  description?: string;
-  summary: string;
-  isOpen: boolean;
-  onToggle: (id: SectionId) => void;
-  children: React.ReactNode;
-}
-
-function CollapsibleSection({
-  id,
+function FormCard({
   number,
   title,
   description,
-  summary,
-  isOpen,
-  onToggle,
   children,
-}: CollapsibleSectionProps) {
+}: {
+  number: number;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div
-      className={`overflow-hidden rounded-2xl border bg-surface transition ${
-        isOpen ? "border-brand-300 shadow-sm" : "border-line"
-      }`}
-    >
-      {/* Header (clickable) */}
-      <button
-        type="button"
-        onClick={() => onToggle(id)}
-        className="flex w-full items-start justify-between gap-4 p-5 text-left transition hover:bg-ink-100/40 sm:p-6"
-        aria-expanded={isOpen}
-      >
-        <div className="flex items-start gap-4">
-          <span
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold transition ${
-              isOpen
-                ? "bg-brand-500 text-white"
-                : "bg-brand-50 text-brand-600"
-            }`}
-          >
-            {number}
-          </span>
-
-          <div className="min-w-0 flex-1">
-            <h2 className="text-lg font-semibold text-ink-800">{title}</h2>
-
-            {/* Subtitle / summary */}
-            <p className="mt-0.5 truncate text-xs text-ink-500">
-              {isOpen ? description : summary}
-            </p>
-          </div>
-        </div>
-
-        <span
-          className={`shrink-0 rounded-full bg-ink-100 p-2 text-ink-500 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-          aria-hidden="true"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-4 w-4"
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+    <div className="rounded-2xl border border-line bg-surface p-6 sm:p-8">
+      <div className="mb-6 flex items-start gap-4">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-semibold text-brand-600">
+          {number}
         </span>
-      </button>
-
-      {/* Body (only when open) */}
-      {isOpen && (
-        <div className="border-t border-line bg-page/40 p-5 sm:p-6">
-          {children}
+        <div>
+          <h2 className="text-lg font-semibold text-ink-800">{title}</h2>
+          {description && (
+            <p className="mt-0.5 text-xs text-ink-500">{description}</p>
+          )}
         </div>
-      )}
+      </div>
+
+      {children}
     </div>
   );
 }

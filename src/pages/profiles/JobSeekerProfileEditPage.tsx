@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useData } from "../../hooks/useData";
 import { useUpdate } from "../../hooks/useUpdate";
+import { useAuth } from "../../context/AuthContext";
 import { endpoints } from "../../api/endpoints";
 
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -18,6 +19,7 @@ interface JobSeekerProfileData {
   first_name: string;
   last_name: string;
   profile_photo: string | null;
+  banner: string | null;
   phone: string;
   location: string;
   professional_title: string;
@@ -26,6 +28,7 @@ interface JobSeekerProfileData {
   education: string;
   experience: string;
   cv: string | null;
+  cv_consent_given_at?: string | null;
   approval_status?: string;
   rejection_reason?: string;
 }
@@ -36,10 +39,17 @@ const inputClass =
 const labelClass =
   "mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-500";
 
-type SectionId = "basic" | "about" | "experience" | "education" | "files";
+type SectionId =
+  | "basic"
+  | "banner"
+  | "about"
+  | "experience"
+  | "education"
+  | "files";
 
 export default function JobSeekerProfileEditPage() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   const {
     data: profile,
@@ -66,6 +76,7 @@ export default function JobSeekerProfileEditPage() {
   });
 
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [banner, setBanner] = useState<File | null>(null);
   const [cv, setCv] = useState<File | null>(null);
   const [success, setSuccess] = useState("");
   const [openSection, setOpenSection] = useState<SectionId | null>("basic");
@@ -103,6 +114,10 @@ export default function JobSeekerProfileEditPage() {
     setProfilePhoto(event.target.files?.[0] ?? null);
   };
 
+  const handleBannerChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setBanner(event.target.files?.[0] ?? null);
+  };
+
   const handleCvChange = (event: ChangeEvent<HTMLInputElement>) => {
     setCv(event.target.files?.[0] ?? null);
   };
@@ -123,12 +138,19 @@ export default function JobSeekerProfileEditPage() {
     data.append("experience", formData.experience);
 
     if (profilePhoto) data.append("profile_photo", profilePhoto);
+    if (banner) data.append("banner", banner);
     if (cv) data.append("cv", cv);
+
+    // Debug — remove after verifying
+    for (const [key, value] of data.entries()) {
+      console.log("FormData:", key, value);
+    }
 
     const result = await update(endpoints.accounts.jobSeeker, data);
 
     if (result) {
       setSuccess("Profile saved successfully.");
+      await refreshUser();
 
       setTimeout(() => {
         navigate("/job-seeker/profile", {
@@ -137,8 +159,6 @@ export default function JobSeekerProfileEditPage() {
       }, 900);
     }
   };
-
-  /* -------- Live summaries for collapsed sections -------- */
 
   const fullName = [formData.first_name, formData.last_name]
     .filter(Boolean)
@@ -150,6 +170,11 @@ export default function JobSeekerProfileEditPage() {
           .filter(Boolean)
           .join(" · ")
       : "Name, contact info and professional title",
+    banner: banner
+      ? "New banner selected"
+      : profile?.banner
+        ? "Current banner uploaded"
+        : "No banner — default will be used",
     about:
       formData.about || formData.skills
         ? "Bio and skills added"
@@ -185,7 +210,6 @@ export default function JobSeekerProfileEditPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-10">
       <div className="mx-auto max-w-5xl">
-        {/* Breadcrumb */}
         <nav className="mb-4 flex items-center gap-1.5 text-xs text-ink-500">
           <Link to="/job-seeker/profile" className="hover:text-brand-600">
             My profile
@@ -194,7 +218,6 @@ export default function JobSeekerProfileEditPage() {
           <span className="text-ink-700">Edit</span>
         </nav>
 
-        {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-ink-800">
@@ -213,7 +236,6 @@ export default function JobSeekerProfileEditPage() {
           </Link>
         </div>
 
-        {/* Banners */}
         {profile?.approval_status === "REJECTED" &&
           profile.rejection_reason && (
             <StatusBanner variant="error" className="mb-5">
@@ -242,9 +264,8 @@ export default function JobSeekerProfileEditPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-            {/* ---------- LEFT: sections ---------- */}
             <div className="space-y-4">
-              {/* Section 1: Basic info */}
+              {/* Section 1: Basic */}
               <CollapsibleSection
                 id="basic"
                 number={1}
@@ -339,10 +360,73 @@ export default function JobSeekerProfileEditPage() {
                 </div>
               </CollapsibleSection>
 
-              {/* Section 2: About */}
+              {/* Section 2: Banner */}
+              <CollapsibleSection
+                id="banner"
+                number={2}
+                title="Cover banner"
+                description="Shown at the top of your public profile."
+                summary={summaries.banner}
+                isOpen={openSection === "banner"}
+                onToggle={toggleSection}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    {banner ? (
+                      <img
+                        src={URL.createObjectURL(banner)}
+                        alt="New banner preview"
+                        className="h-16 w-28 shrink-0 rounded-xl border border-line object-cover"
+                      />
+                    ) : profile?.banner ? (
+                      <img
+                        src={profile.banner}
+                        alt="Current banner"
+                        className="h-16 w-28 shrink-0 rounded-xl border border-line object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-28 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-[11px] text-ink-500">
+                        No banner
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <input
+                        id="banner"
+                        name="banner"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerChange}
+                        className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-800 outline-none file:mr-4 file:rounded file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
+                      />
+                    </div>
+                  </div>
+
+                  {banner && (
+                    <p className="text-xs text-emerald-600">
+                      New banner selected — it will replace the current
+                      one when you save.
+                    </p>
+                  )}
+
+                  {profile?.banner && !banner && (
+                    <p className="text-xs text-ink-500">
+                      Current banner shown above. Choose a new file to
+                      replace it.
+                    </p>
+                  )}
+
+                  <p className="text-xs text-ink-500">
+                    Recommended: 1600×400 pixels or wider. Landscape
+                    orientation works best.
+                  </p>
+                </div>
+              </CollapsibleSection>
+
+              {/* Section 3: About */}
               <CollapsibleSection
                 id="about"
-                number={2}
+                number={3}
                 title="About you"
                 description="Short bio and skills."
                 summary={summaries.about}
@@ -385,10 +469,10 @@ export default function JobSeekerProfileEditPage() {
                 </div>
               </CollapsibleSection>
 
-              {/* Section 3: Experience */}
+              {/* Section 4: Experience */}
               <CollapsibleSection
                 id="experience"
-                number={3}
+                number={4}
                 title="Experience"
                 description="Your work history."
                 summary={summaries.experience}
@@ -410,15 +494,15 @@ export default function JobSeekerProfileEditPage() {
                   />
                   <p className="mt-1.5 text-xs text-ink-500">
                     Separate each role with a blank line. The first line
-                    becomes the header (e.g. "Job Title at Company, Dates").
+                    becomes the header.
                   </p>
                 </div>
               </CollapsibleSection>
 
-              {/* Section 4: Education */}
+              {/* Section 5: Education */}
               <CollapsibleSection
                 id="education"
-                number={4}
+                number={5}
                 title="Education"
                 description="Degrees, diplomas and certifications."
                 summary={summaries.education}
@@ -444,10 +528,10 @@ export default function JobSeekerProfileEditPage() {
                 </div>
               </CollapsibleSection>
 
-              {/* Section 5: Files */}
+              {/* Section 6: Files */}
               <CollapsibleSection
                 id="files"
-                number={5}
+                number={6}
                 title="Files"
                 description="Profile photo and CV."
                 summary={summaries.files}
@@ -456,7 +540,10 @@ export default function JobSeekerProfileEditPage() {
               >
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="profile_photo" className={labelClass}>
+                    <label
+                      htmlFor="profile_photo"
+                      className={labelClass}
+                    >
                       Profile photo
                     </label>
                     <input
@@ -505,7 +592,6 @@ export default function JobSeekerProfileEditPage() {
                 </div>
               </CollapsibleSection>
 
-              {/* Actions - desktop */}
               <div className="hidden items-center justify-end gap-3 border-t border-line pt-6 lg:flex">
                 <Link
                   to="/job-seeker/profile"
@@ -524,7 +610,6 @@ export default function JobSeekerProfileEditPage() {
               </div>
             </div>
 
-            {/* ---------- RIGHT: preview + tips ---------- */}
             <aside className="space-y-4">
               <div className="rounded-2xl border border-line bg-surface p-5">
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-ink-500">
@@ -547,11 +632,13 @@ export default function JobSeekerProfileEditPage() {
                     value={formData.location || "Not specified"}
                   />
                   <PreviewRow
-                    label="Skills"
+                    label="Banner"
                     value={
-                      formData.skills
-                        ? `${formData.skills.split(",").filter(Boolean).length} listed`
-                        : "None listed"
+                      banner
+                        ? "New file ready"
+                        : profile?.banner
+                          ? "Uploaded"
+                          : "Using default"
                     }
                   />
                   <PreviewRow
@@ -578,19 +665,17 @@ export default function JobSeekerProfileEditPage() {
                 </div>
                 <ul className="list-disc space-y-1.5 pl-4 text-xs leading-relaxed text-brand-700/80">
                   <li>
-                    Keep your <strong>professional title</strong> focused
-                    — it's what employers see first.
+                    Pick a <strong>landscape banner</strong> (1600×400 or
+                    wider).
+                  </li>
+                  <li>
+                    Keep your <strong>professional title</strong> focused.
                   </li>
                   <li>
                     List <strong>5–10 skills</strong> separated by commas.
                   </li>
                   <li>
-                    For experience and education, put the{" "}
-                    <strong>job title or degree first</strong>, then dates.
-                  </li>
-                  <li>
-                    Upload an up-to-date <strong>CV</strong> — this is
-                    what employers download.
+                    Upload an up-to-date <strong>CV</strong>.
                   </li>
                 </ul>
               </div>
@@ -647,7 +732,6 @@ export default function JobSeekerProfileEditPage() {
             </aside>
           </div>
 
-          {/* Actions - mobile */}
           <div className="mt-6 flex items-center justify-end gap-3 border-t border-line pt-6 lg:hidden">
             <Link
               to="/job-seeker/profile"
@@ -669,8 +753,6 @@ export default function JobSeekerProfileEditPage() {
     </div>
   );
 }
-
-/* ---------- Local components ---------- */
 
 interface CollapsibleSectionProps {
   id: SectionId;

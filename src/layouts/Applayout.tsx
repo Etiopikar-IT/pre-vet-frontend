@@ -6,19 +6,42 @@ import Sidebar from "../components/sidebar/Sidebar";
 
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => {
+    // Persist across navigations
+    return localStorage.getItem("sidebar_collapsed") === "1";
+  });
+
+  const toggleCollapse = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem("sidebar_collapsed", next ? "1" : "0");
+      return next;
+    });
+  };
 
   return (
-    <div className="min-h-screen bg-page text-ink-800">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex min-h-screen flex-col bg-page text-ink-800">
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        collapsed={collapsed}
+        onToggleCollapse={toggleCollapse}
+      />
 
-      {/* Push content to the right of the sidebar on desktop */}
-      <div className="md:pl-72">
-        {/* Header: mobile menu toggle + user profile + notifications */}
+      {/* Content column pushes right of the sidebar — width changes with collapse */}
+      <div
+        className={[
+          "flex flex-1 flex-col transition-[padding] duration-200",
+          collapsed ? "md:pl-20" : "md:pl-72",
+        ].join(" ")}
+      >
         <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="min-h-[calc(100vh-64px)]">
+        <main className="flex-1">
           <Outlet />
         </main>
+
+    
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ interface SidebarItemProps {
   label: string;
   badge?: number;
   end?: boolean;
+  collapsed?: boolean;
   onClick?: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function SidebarItem({
   label,
   badge,
   end = false,
+  collapsed = false,
   onClick,
 }: SidebarItemProps) {
   return (
@@ -25,12 +27,14 @@ export default function SidebarItem({
       onClick={onClick}
       className={({ isActive }) =>
         [
-          "group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition",
+          "group relative flex items-center rounded-lg px-3 py-2.5 text-sm font-medium transition",
+          collapsed ? "justify-center" : "gap-3",
           isActive
             ? "bg-white/10 text-white"
             : "text-brand-100 hover:bg-white/5 hover:text-white",
         ].join(" ")
       }
+      title={collapsed ? label : undefined}
     >
       {({ isActive }) => (
         <>
@@ -45,12 +49,17 @@ export default function SidebarItem({
             {icon}
           </span>
 
-          <span className="flex-1">{label}</span>
+          {!collapsed && <span className="flex-1">{label}</span>}
 
-          {badge !== undefined && badge > 0 && (
-            <span className="rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white">
+          {!collapsed && badge !== undefined && badge > 0 && (
+            <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-semibold text-white">
               {badge > 99 ? "99+" : badge}
             </span>
+          )}
+
+          {/* Dot badge when collapsed */}
+          {collapsed && badge !== undefined && badge > 0 && (
+            <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-red-500" />
           )}
         </>
       )}

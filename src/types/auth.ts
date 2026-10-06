@@ -3,10 +3,11 @@ export type UserType = "COMPANY" | "JOB_SEEKER";
 export interface User {
   id: number;
   email: string;
-  user_type: UserType;
+  user_type: "COMPANY" | "JOB_SEEKER";
   is_active: boolean;
-  has_profile: boolean;   
+  has_profile: boolean;
   company_id: number | null;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -4,6 +4,7 @@ import { ChevronDownIcon } from "./icons";
 interface ProfileTriggerProps {
   email: string;
   displayName: string;
+  avatarUrl?: string | null;
   open: boolean;
   onClick: () => void;
 }
@@ -11,6 +12,7 @@ interface ProfileTriggerProps {
 export default function ProfileTrigger({
   email,
   displayName,
+  avatarUrl,
   open,
   onClick,
 }: ProfileTriggerProps) {
@@ -22,7 +24,7 @@ export default function ProfileTrigger({
       aria-haspopup="menu"
       aria-expanded={open}
     >
-      <UserAvatar email={email} size="sm" />
+      <UserAvatar email={email} src={avatarUrl} size="sm" />
 
       <span className="hidden text-sm font-medium text-ink-700 sm:inline">
         {displayName}

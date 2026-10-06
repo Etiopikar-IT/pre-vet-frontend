@@ -17,7 +17,7 @@ interface CompanyProfileData {
   id: number;
   company_name: string;
   logo: string | null;
-  cover_photo?: string | null;
+  banner: string | null;
   description: string;
   industry: string;
   website: string;
@@ -78,11 +78,11 @@ export default function CompanyProfileView() {
     !profile.phone &&
     !profile.address;
 
-  const coverSrc = profile.cover_photo || DEFAULT_COVER;
+  const coverSrc = profile.banner || DEFAULT_COVER;
 
   return (
     <div className="min-h-[calc(100vh-64px)] bg-page pb-12">
-      {/* ---------- Cover with overlaid company identity ---------- */}
+      {/* Cover */}
       <div className="relative h-72 w-full overflow-hidden bg-brand-600 sm:h-80 lg:h-96">
         <img
           src={coverSrc}
@@ -93,7 +93,6 @@ export default function CompanyProfileView() {
         <div className="absolute inset-0 bg-gradient-to-t from-brand-900/95 via-brand-800/70 to-brand-600/30" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_55%)]" />
 
-        {/* Overlay content */}
         <div className="absolute inset-x-0 bottom-0">
           <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 pb-8 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex items-end gap-4 sm:gap-5">
@@ -184,10 +183,9 @@ export default function CompanyProfileView() {
         </div>
       </div>
 
-      {/* ---------- Two-column content below ---------- */}
+      {/* Content */}
       <div className="mx-auto max-w-5xl px-6 pt-6">
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-          {/* Left: tabs card */}
           <ProfileTabsCard
             tabs={TABS}
             active={tab}
@@ -244,7 +242,6 @@ export default function CompanyProfileView() {
             )}
           </ProfileTabsCard>
 
-          {/* Right: overview card */}
           <ProfileOverviewCard title="Overview">
             <div className="space-y-5">
               <ProfileStatusBanner
@@ -277,10 +274,7 @@ export default function CompanyProfileView() {
                     />
                   )}
                   {profile.phone && (
-                    <SnapshotRow
-                      label="Phone"
-                      value={profile.phone}
-                    />
+                    <SnapshotRow label="Phone" value={profile.phone} />
                   )}
                 </dl>
               </div>
@@ -291,8 +285,6 @@ export default function CompanyProfileView() {
     </div>
   );
 }
-
-/* ---------- Local pieces ---------- */
 
 function CompanyDetail({
   label,

@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 
-import Header from "./components/Header";        // your existing header — see note below
+import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AppLayout from "./layouts/Applayout";
 import { AuthProvider } from "./context/AuthContext";
@@ -11,11 +11,11 @@ import RegisterPage from "./pages/auth/RegisterPage";
 
 // Profiles
 import CompanyProfileView from "./pages/profiles/CompanyProfileView";
-import CompanyProfile from "./components/CompanyProfile";
-import JobSeekerProfile from "./components/jobs/jobList/JobSeekerProfile";
 import JobSeekerProfileView from "./pages/profiles/JobSeekerProfileView";
 import CompanyCreateProfilePage from "./pages/profiles/CompanyCreateProfilePage";
 import JobSeekerCreateProfilePage from "./pages/profiles/JobSeekerCreateProfilePage";
+import JobSeekerProfileEditPage from "./pages/profiles/JobSeekerProfileEditPage";
+import CompanyProfileEditPage from "./pages/profiles/CompanyProfileEditPage";
 
 // Jobs
 import JobCreatePage from "./pages/job/JobCreatePage";
@@ -25,54 +25,25 @@ import JobApplyPage from "./pages/job/JobApplyPage";
 import JobSeekerApplicationsPage from "./pages/job/JobSeekerApplicationsPage";
 import JobSeekerApplicationDetailPage from "./pages/job/JobSeekerApplicationsDetailPage";
 import CompanyJobsPage from "./pages/job/CompanyJobsPage";
+import JobEditPage from "./pages/job/JobEditPage";
 
 // Sidebar pages
 import DashboardPage from "./pages/dashboard/DashboardPage";
 import NotificationsPage from "./pages/notification/NorificationsPage";
-import NewsPage from "./pages/news/NewsPage";
-import JobEditPage from "./pages/job/JobEditPage";
-import JobSeekerProfileEditPage from "./pages/profiles/JobSeekerProfileEditPage";
-import CompanyProfileEditPage from "./pages/profiles/CompanyProfileEditPage";
-import PublicLandingPage from "./pages/PublicLandingPage";
-import HomeRoute from "./components/HomeRoute";
 
-function HomePage() {
-  return (
-    <div className="min-h-screen bg-page">
-      <div className="mx-auto max-w-7xl px-6 py-20 text-center">
-        <h1 className="text-5xl font-bold text-ink-800">
-          Find Your Next Opportunity
-        </h1>
-        <p className="mx-auto mt-5 max-w-2xl text-lg text-ink-600">
-          Connect talented people with companies looking for great candidates.
-        </p>
-        <div className="mt-8 flex justify-center gap-4">
-          <a
-            href="/register/job-seeker"
-            className="rounded-lg bg-brand-500 px-6 py-3 font-semibold text-white hover:bg-brand-600"
-          >
-            Join as Job Seeker
-          </a>
-          <a
-            href="/register/company"
-            className="rounded-lg border border-brand-500 px-6 py-3 font-semibold text-brand-500 hover:bg-brand-50"
-          >
-            Join as a Company
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
+
+import HomeRoute from "./components/HomeRoute";
+import NewsListPage from "./components/news/NewsListPage";
+import NewsDetailPage from "./components/news/NewsDetailPage";
 
 export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-       
         <Routes>
-          {/* ---------- Public (with your existing Header) ---------- */}
+          {/* ---------- Public ---------- */}
           <Route path="/" element={<HomeRoute />} />
+
           <Route
             path="/login"
             element={
@@ -110,8 +81,14 @@ export default function App() {
             }
           >
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/news" element={<NewsPage />} />
+            <Route
+              path="/notifications"
+              element={<NotificationsPage />}
+            />
+
+            {/* News lives here now */}
+            <Route path="/news" element={<NewsListPage />} />
+            <Route path="/news/:slug" element={<NewsDetailPage />} />
 
             <Route path="/jobs" element={<JobListPage />} />
             <Route path="/jobs/:id" element={<JobDetailPage />} />
@@ -150,6 +127,14 @@ export default function App() {
               }
             />
             <Route
+              path="/company/jobs/:id/edit"
+              element={
+                <ProtectedRoute allowedType="COMPANY">
+                  <JobEditPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/company/create-profile"
               element={
                 <ProtectedRoute allowedType="COMPANY">
@@ -167,8 +152,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-            
-
             <Route
               path="/job-seeker/profile/edit"
               element={
@@ -177,7 +160,6 @@ export default function App() {
                 </ProtectedRoute>
               }
             />
-
             <Route
               path="/job-seeker/create-profile"
               element={
@@ -191,14 +173,6 @@ export default function App() {
               element={
                 <ProtectedRoute allowedType="JOB_SEEKER">
                   <JobApplyPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/company/jobs/:id/edit"
-              element={
-                <ProtectedRoute allowedType="COMPANY">
-                  <JobEditPage />
                 </ProtectedRoute>
               }
             />

@@ -13,6 +13,7 @@ import {
 interface ProfileDropdownProps {
   email: string;
   displayName: string;
+  avatarUrl?: string | null;
   roleLabel: string;
   profilePath: string;
   profileEditPath: string;
@@ -25,6 +26,7 @@ interface ProfileDropdownProps {
 export default function ProfileDropdown({
   email,
   displayName,
+  avatarUrl,
   roleLabel,
   profilePath,
   profileEditPath,
@@ -35,7 +37,6 @@ export default function ProfileDropdown({
 }: ProfileDropdownProps) {
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
 
@@ -44,41 +45,39 @@ export default function ProfileDropdown({
         onClose();
       }
     }
-
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, [open, onClose]);
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return;
 
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
-
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
   return (
     <div ref={ref} className="relative">
-     <ProfileTrigger
+      <ProfileTrigger
         email={email}
         displayName={displayName}
+        avatarUrl={avatarUrl}
         open={open}
         onClick={onToggle}
-        />
+      />
 
       {open && (
         <div
           role="menu"
           className="absolute right-0 top-full z-40 mt-2 w-64 overflow-hidden rounded-xl border border-line bg-surface shadow-lg"
         >
-          {/* User info */}
+          {/* User info block */}
           <div className="border-b border-line px-4 py-4">
             <div className="flex items-center gap-3">
-              <UserAvatar email={email} size="md" />
+              <UserAvatar email={email} src={avatarUrl} size="md" />
 
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-ink-800">

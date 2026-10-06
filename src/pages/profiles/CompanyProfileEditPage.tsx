@@ -8,6 +8,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useData } from "../../hooks/useData";
 import { useUpdate } from "../../hooks/useUpdate";
+import { useAuth } from "../../context/AuthContext";
 import { endpoints } from "../../api/endpoints";
 
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -17,6 +18,7 @@ interface CompanyProfileData {
   id?: number;
   company_name: string;
   logo: string | null;
+  banner: string | null;
   description: string;
   industry: string;
   website: string;
@@ -32,10 +34,11 @@ const inputClass =
 const labelClass =
   "mb-1.5 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-ink-500";
 
-type SectionId = "identity" | "about" | "contact" | "logo";
+type SectionId = "identity" | "banner" | "about" | "contact" | "logo";
 
 export default function CompanyProfileEditPage() {
   const navigate = useNavigate();
+  const { refreshUser } = useAuth();
 
   const {
     data: profile,
@@ -59,6 +62,7 @@ export default function CompanyProfileEditPage() {
   });
 
   const [logo, setLogo] = useState<File | null>(null);
+  const [banner, setBanner] = useState<File | null>(null);
   const [success, setSuccess] = useState("");
   const [openSection, setOpenSection] = useState<SectionId | null>(
     "identity",
@@ -92,6 +96,10 @@ export default function CompanyProfileEditPage() {
     setLogo(event.target.files?.[0] ?? null);
   };
 
+  const handleBannerChange = (event: ChangeEvent<HTMLInputElement>) => {
+    setBanner(event.target.files?.[0] ?? null);
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSuccess("");
@@ -105,11 +113,13 @@ export default function CompanyProfileEditPage() {
     data.append("address", formData.address);
 
     if (logo) data.append("logo", logo);
+    if (banner) data.append("banner", banner);
 
     const result = await update(endpoints.accounts.company, data);
 
     if (result) {
       setSuccess("Company profile saved successfully.");
+      await refreshUser();
 
       setTimeout(() => {
         navigate("/company/profile", {
@@ -119,28 +129,31 @@ export default function CompanyProfileEditPage() {
     }
   };
 
-  /* -------- Live summaries for collapsed sections -------- */
-
   const summaries: Record<SectionId, string> = {
     identity: formData.company_name
       ? [formData.company_name, formData.industry]
           .filter(Boolean)
           .join(" · ")
       : "Company name and industry",
+    banner: banner
+      ? "New banner selected"
+      : profile?.banner
+        ? "Current banner uploaded"
+        : "No banner — default will be used",
     about: formData.description
       ? `${formData.description.length} characters`
       : "A short description of what your company does",
-    contact: formData.website || formData.phone || formData.address
-      ? [formData.website, formData.phone, formData.address]
-          .filter(Boolean)
-          .join(" · ")
-      : "Website, phone and address",
-    logo:
-      logo
-        ? "New logo selected"
-        : profile?.logo
-          ? "Current logo uploaded"
-          : "Company logo",
+    contact:
+      formData.website || formData.phone || formData.address
+        ? [formData.website, formData.phone, formData.address]
+            .filter(Boolean)
+            .join(" · ")
+        : "Website, phone and address",
+    logo: logo
+      ? "New logo selected"
+      : profile?.logo
+        ? "Current logo uploaded"
+        : "Company logo",
   };
 
   if (profileLoading) {
@@ -150,7 +163,6 @@ export default function CompanyProfileEditPage() {
   return (
     <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-10">
       <div className="mx-auto max-w-5xl">
-        {/* Breadcrumb */}
         <nav className="mb-4 flex items-center gap-1.5 text-xs text-ink-500">
           <Link to="/company/profile" className="hover:text-brand-600">
             Company profile
@@ -159,7 +171,6 @@ export default function CompanyProfileEditPage() {
           <span className="text-ink-700">Edit</span>
         </nav>
 
-        {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-ink-800">
@@ -178,7 +189,6 @@ export default function CompanyProfileEditPage() {
           </Link>
         </div>
 
-        {/* Banners */}
         {profile?.approval_status === "REJECTED" &&
           profile.rejection_reason && (
             <StatusBanner variant="error" className="mb-5">
@@ -207,9 +217,8 @@ export default function CompanyProfileEditPage() {
 
         <form onSubmit={handleSubmit}>
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-            {/* ---------- LEFT: sections ---------- */}
             <div className="space-y-4">
-              {/* Section 1: Company identity */}
+              {/* Section 1: Identity */}
               <CollapsibleSection
                 id="identity"
                 number={1}
@@ -257,10 +266,73 @@ export default function CompanyProfileEditPage() {
                 </div>
               </CollapsibleSection>
 
-              {/* Section 2: About */}
+              {/* Section 2: Banner */}
+              <CollapsibleSection
+                id="banner"
+                number={2}
+                title="Cover banner"
+                description="Shown at the top of your public company page."
+                summary={summaries.banner}
+                isOpen={openSection === "banner"}
+                onToggle={toggleSection}
+              >
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    {banner ? (
+                      <img
+                        src={URL.createObjectURL(banner)}
+                        alt="New banner preview"
+                        className="h-16 w-28 shrink-0 rounded-xl border border-line object-cover"
+                      />
+                    ) : profile?.banner ? (
+                      <img
+                        src={profile.banner}
+                        alt="Current banner"
+                        className="h-16 w-28 shrink-0 rounded-xl border border-line object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-16 w-28 shrink-0 items-center justify-center rounded-xl bg-ink-100 text-[11px] text-ink-500">
+                        No banner
+                      </div>
+                    )}
+
+                    <div className="min-w-0 flex-1">
+                      <input
+                        id="banner"
+                        name="banner"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBannerChange}
+                        className="w-full rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-800 outline-none file:mr-4 file:rounded file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100"
+                      />
+                    </div>
+                  </div>
+
+                  {banner && (
+                    <p className="text-xs text-emerald-600">
+                      New banner selected — it will replace the current
+                      one when you save.
+                    </p>
+                  )}
+
+                  {profile?.banner && !banner && (
+                    <p className="text-xs text-ink-500">
+                      Current banner shown above. Choose a new file to
+                      replace it.
+                    </p>
+                  )}
+
+                  <p className="text-xs text-ink-500">
+                    Recommended: 1600×400 pixels or wider. Landscape
+                    orientation works best.
+                  </p>
+                </div>
+              </CollapsibleSection>
+
+              {/* Section 3: About */}
               <CollapsibleSection
                 id="about"
-                number={2}
+                number={3}
                 title="About the company"
                 description="A short description of what you do."
                 summary={summaries.about}
@@ -287,10 +359,10 @@ export default function CompanyProfileEditPage() {
                 </div>
               </CollapsibleSection>
 
-              {/* Section 3: Contact */}
+              {/* Section 4: Contact */}
               <CollapsibleSection
                 id="contact"
-                number={3}
+                number={4}
                 title="Contact details"
                 description="How candidates can reach you."
                 summary={summaries.contact}
@@ -345,10 +417,10 @@ export default function CompanyProfileEditPage() {
                 </div>
               </CollapsibleSection>
 
-              {/* Section 4: Logo */}
+              {/* Section 5: Logo */}
               <CollapsibleSection
                 id="logo"
-                number={4}
+                number={5}
                 title="Company logo"
                 description="A square logo works best."
                 summary={summaries.logo}
@@ -404,7 +476,6 @@ export default function CompanyProfileEditPage() {
                 </div>
               </CollapsibleSection>
 
-              {/* Actions - desktop */}
               <div className="hidden items-center justify-end gap-3 border-t border-line pt-6 lg:flex">
                 <Link
                   to="/company/profile"
@@ -423,9 +494,7 @@ export default function CompanyProfileEditPage() {
               </div>
             </div>
 
-            {/* ---------- RIGHT: preview + tips ---------- */}
             <aside className="space-y-4">
-              {/* Live preview card */}
               <div className="rounded-2xl border border-line bg-surface p-5">
                 <h3 className="mb-4 text-xs font-semibold uppercase tracking-wide text-ink-500">
                   Company preview
@@ -465,6 +534,16 @@ export default function CompanyProfileEditPage() {
 
                 <div className="mt-5 space-y-3 border-t border-line pt-4">
                   <PreviewRow
+                    label="Banner"
+                    value={
+                      banner
+                        ? "New file ready"
+                        : profile?.banner
+                          ? "Uploaded"
+                          : "Using default"
+                    }
+                  />
+                  <PreviewRow
                     label="Website"
                     value={
                       formData.website
@@ -491,7 +570,6 @@ export default function CompanyProfileEditPage() {
                 </div>
               </div>
 
-              {/* Tips card */}
               <div className="rounded-2xl border border-brand-200 bg-brand-50 p-5">
                 <div className="mb-2 flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-500 text-xs font-semibold text-white">
@@ -507,22 +585,20 @@ export default function CompanyProfileEditPage() {
                     candidates can find you.
                   </li>
                   <li>
+                    Pick a <strong>landscape banner</strong> (1600×400 or
+                    wider).
+                  </li>
+                  <li>
                     A <strong>square logo</strong> at least 200×200 px
-                    looks best in job listings.
+                    looks best.
                   </li>
                   <li>
                     Keep the <strong>description</strong> friendly and
-                    specific — mission, team size, and what you're
-                    building.
-                  </li>
-                  <li>
-                    Include a <strong>website</strong> so candidates can
-                    learn more before applying.
+                    specific.
                   </li>
                 </ul>
               </div>
 
-              {/* Approval status card */}
               {profile?.approval_status && (
                 <div
                   className={`rounded-2xl border p-5 ${
@@ -575,7 +651,6 @@ export default function CompanyProfileEditPage() {
             </aside>
           </div>
 
-          {/* Actions - mobile */}
           <div className="mt-6 flex items-center justify-end gap-3 border-t border-line pt-6 lg:hidden">
             <Link
               to="/company/profile"
@@ -597,8 +672,6 @@ export default function CompanyProfileEditPage() {
     </div>
   );
 }
-
-/* ---------- Local components ---------- */
 
 interface CollapsibleSectionProps {
   id: SectionId;
