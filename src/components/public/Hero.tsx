@@ -1,15 +1,14 @@
-import { Link } from "react-router-dom";
 import { CONFIG } from "./config";
 import Reveal from "./Reveal";
+import { useApplyModal } from "../apply/ApplyModalContext";
 
 interface HeroProps {
-  onJoinClick: () => void;
   onProcessClick: () => void;
 }
 
-export default function Hero({
-  onProcessClick,
-}: HeroProps) {
+export default function Hero({ onProcessClick }: HeroProps) {
+  const { open: openApply } = useApplyModal();
+
   const names = CONFIG.sectors.map((s) => s.name);
   const joined =
     names.length > 1
@@ -17,7 +16,8 @@ export default function Hero({
       : names[0] ?? "";
 
   return (
-    <div className="mx-auto grid max-w-[1120px] gap-14 border-b px-8 py-24 md:grid-cols-[1.3fr_1fr] md:items-end"
+    <div
+      className="mx-auto grid max-w-[1120px] gap-14 border-b px-8 py-24 md:grid-cols-[1.3fr_1fr] md:items-end"
       style={{ borderColor: "var(--public-line)" }}
     >
       <Reveal>
@@ -44,25 +44,26 @@ export default function Hero({
         </p>
 
         <div className="mt-9 flex flex-wrap gap-4">
-         <Link
-            to="/register/job-seeker"
+          <button
+            type="button"
+            onClick={openApply}
             className="inline-block rounded-sm px-7 py-3.5 text-[15px] font-medium transition-transform hover:-translate-y-0.5"
             style={{
-                background: "var(--public-teal)",
-                color: "var(--public-paper)",
-                boxShadow: "0 0 0 rgba(31,74,68,0)",
+              background: "var(--public-teal)",
+              color: "var(--public-paper)",
+              boxShadow: "0 0 0 rgba(31,74,68,0)",
             }}
             onMouseEnter={(e) =>
-                (e.currentTarget.style.boxShadow =
+              (e.currentTarget.style.boxShadow =
                 "0 10px 24px rgba(31,74,68,0.28)")
             }
             onMouseLeave={(e) =>
-                (e.currentTarget.style.boxShadow =
+              (e.currentTarget.style.boxShadow =
                 "0 0 0 rgba(31,74,68,0)")
             }
-            >
+          >
             Join the talent pool
-        </Link>
+          </button>
 
           <button
             type="button"

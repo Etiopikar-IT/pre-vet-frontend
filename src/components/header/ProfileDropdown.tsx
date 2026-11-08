@@ -6,6 +6,7 @@ import UserAvatar from "./UserAvatar";
 import {
   DashboardIcon,
   EditIcon,
+  KeyIcon,
   LogoutIcon,
   UserIcon,
 } from "./icons";
@@ -110,6 +111,12 @@ export default function ProfileDropdown({
               to={profileEditPath}
               icon={<EditIcon />}
               label="Edit profile"
+              onClick={onClose}
+            />
+            <DropdownItem
+              to="/change-password"
+              icon={<KeyIcon />}
+              label="Change password"
               onClick={onClose}
             />
           </div>

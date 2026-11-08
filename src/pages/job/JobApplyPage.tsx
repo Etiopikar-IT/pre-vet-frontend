@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { useDetail } from "../../hooks/useDetail";
 import { useCreate } from "../../hooks/useCreate";
+import { useAuth } from "../../context/AuthContext";
 import { endpoints } from "../../api/endpoints";
 
 import BackLink from "../../components/jobs/BackLink";
@@ -30,6 +31,7 @@ interface JobApplication {
 export default function JobApplyPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const {
     data: job,
@@ -44,6 +46,7 @@ export default function JobApplyPage() {
     reset,
   } = useCreate<JobApplication>();
 
+  const [email, setEmail] = useState(user?.email ?? "");
   const [coverLetter, setCoverLetter] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -53,9 +56,11 @@ export default function JobApplyPage() {
     reset();
 
     if (!job) return;
+    if (!email.trim()) return;
 
     const result = await create(endpoints.applications.list, {
       job: job.id,
+      email: email.trim().toLowerCase(),
       cover_letter: coverLetter,
     });
 
@@ -63,9 +68,19 @@ export default function JobApplyPage() {
       setSuccess("Your application has been submitted.");
 
       setTimeout(() => {
-        navigate("/applications", {
-          state: { message: "Application submitted successfully." },
-        });
+        if (user) {
+          navigate("/applications", {
+            state: { message: "Application submitted successfully." },
+          });
+        } else {
+          // Anonymous users have no /applications page — send them home.
+          navigate(`/jobs/${job.id}`, {
+            state: {
+              message:
+                "Application submitted. Check your email to complete your profile.",
+            },
+          });
+        }
       }, 1200);
     }
   };
@@ -133,6 +148,9 @@ export default function JobApplyPage() {
     );
   }
 
+  const isTalentPoolError =
+    submitError?.toLowerCase().includes("talent pool");
+
   return (
     <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-12">
       <div className="mx-auto max-w-2xl">
@@ -147,9 +165,21 @@ export default function JobApplyPage() {
           location={job.location}
         />
 
-        {submitError && (
+        {submitError && !isTalentPoolError && (
           <StatusBanner variant="error" className="mb-5">
             {submitError}
+          </StatusBanner>
+        )}
+
+        {isTalentPoolError && (
+          <StatusBanner variant="info" className="mb-5">
+            {submitError}{" "}
+            <Link
+              to="/join"
+              className="font-medium text-brand-600 hover:underline"
+            >
+              Join the talent pool →
+            </Link>
           </StatusBanner>
         )}
 
@@ -161,6 +191,34 @@ export default function JobApplyPage() {
 
         <div className="rounded-2xl border border-line bg-surface p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label
+                htmlFor="apply-email"
+                className="block text-sm font-medium text-ink-700"
+              >
+                Email address
+              </label>
+              <p className="mt-1 text-xs text-ink-500">
+                {user
+                  ? "We'll use this email for your application."
+                  : "No account needed — we'll create a talent-pool profile for you."}
+              </p>
+              <input
+                id="apply-email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (submitError) reset();
+                }}
+                disabled={submitLoading}
+                className="mt-2 w-full rounded-lg border border-line bg-page px-3 py-2.5 text-sm text-ink-800 placeholder:text-ink-400 focus:border-brand-500 focus:outline-none disabled:opacity-60"
+              />
+            </div>
+
             <CoverLetterField
               value={coverLetter}
               onChange={setCoverLetter}
@@ -169,6 +227,7 @@ export default function JobApplyPage() {
             <ApplyActions
               cancelTo={`/jobs/${job.id}`}
               submitting={submitLoading}
+              disabled={!email.trim()}
             />
           </form>
         </div>

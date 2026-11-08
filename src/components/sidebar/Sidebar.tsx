@@ -90,7 +90,7 @@ export default function Sidebar({
             />
 
             <SidebarItem
-              to="/jobs"
+              to="/company/job/job_list"
               label="Search jobs"
               collapsed={collapsed}
               icon={

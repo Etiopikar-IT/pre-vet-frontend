@@ -1,17 +1,29 @@
-import { CONFIG } from "./config";
+import { useData } from "../../hooks/useData";
+import { endpoints } from "../../api/endpoints";
 import Reveal from "./Reveal";
 import SectionHead from "./SectionHead";
 
-function initialsOf(name: string) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .slice(0, 2)
-    .join("");
+interface TeamMember {
+  id: string;
+  image: string | null;
+  image_url: string | null;
+  first_name: string;
+  last_name: string;
+  role: string;
+  description: string;
+}
+
+function initialsOf(first: string, last: string) {
+  return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
 }
 
 export default function TeamSection() {
+  const { data, loading, error } = useData<TeamMember[]>(
+    endpoints.accounts.team,
+  );
+
+  const members = data ?? [];
+
   return (
     <section
       id="team"
@@ -24,68 +36,104 @@ export default function TeamSection() {
           subtitle="The people reviewing your profile and making the call when a role opens."
         />
 
-        <Reveal className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
-          {CONFIG.team.map((person) => (
-            <div
-              key={person.name}
-              className="border p-6 transition-transform hover:-translate-y-1"
+        {error && (
+          <div
+            className="mt-8 border px-4 py-3 text-[14px]"
+            style={{
+              borderColor: "#fecaca",
+              background: "#fef2f2",
+              color: "#b91c1c",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        {loading && (
+          <div
+            className="mt-10 flex items-center justify-center gap-3 text-[14px]"
+            style={{ color: "rgba(24,26,22,0.6)" }}
+          >
+            <span
+              className="h-5 w-5 animate-spin rounded-full border-2"
               style={{
-                background: "var(--public-paper-raised)",
                 borderColor: "var(--public-line)",
+                borderTopColor: "var(--public-teal)",
               }}
-            >
-              <div
-                className="mb-4 flex h-13 w-13 items-center justify-center overflow-hidden rounded-full text-[18px]"
-                style={{
-                  width: 52,
-                  height: 52,
-                  background: "var(--public-teal)",
-                  color: "var(--public-paper)",
-                  fontFamily: "'Fraunces', serif",
-                }}
-              >
-                {person.photo ? (
-                  <img
-                    src={person.photo}
-                    alt={person.name}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  initialsOf(person.name)
-                )}
-              </div>
+            />
+            Loading team...
+          </div>
+        )}
 
-              <h3 className="text-[18px] font-medium">
-                {person.linkedin ? (
-                  <a
-                    href={person.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="border-b border-transparent transition-colors hover:border-[var(--public-teal)] hover:text-[var(--public-teal)]"
+        {!loading && !error && members.length === 0 && (
+          <p
+            className="mt-10 text-center text-[14px]"
+            style={{ color: "rgba(24,26,22,0.6)" }}
+          >
+            No team members to show yet.
+          </p>
+        )}
+
+        {!loading && members.length > 0 && (
+          <Reveal className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+            {members.map((person) => {
+              const fullName = `${person.first_name} ${person.last_name}`.trim();
+              const avatarSrc = person.image_url || person.image;
+
+              return (
+                <div
+                  key={person.id}
+                  className="border p-6 transition-transform hover:-translate-y-1"
+                  style={{
+                    background: "var(--public-paper-raised)",
+                    borderColor: "var(--public-line)",
+                  }}
+                >
+                  <div
+                    className="mb-4 flex items-center justify-center overflow-hidden rounded-full text-[18px]"
+                    style={{
+                      width: 52,
+                      height: 52,
+                      background: "var(--public-teal)",
+                      color: "var(--public-paper)",
+                      fontFamily: "'Fraunces', serif",
+                    }}
                   >
-                    {person.name}
-                  </a>
-                ) : (
-                  person.name
-                )}
-              </h3>
+                    {avatarSrc ? (
+                      <img
+                        src={avatarSrc}
+                        alt={fullName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      initialsOf(person.first_name, person.last_name)
+                    )}
+                  </div>
 
-              <div
-                className="mt-1 mb-3 text-[13px]"
-                style={{ color: "var(--public-gold)" }}
-              >
-                {person.role}
-              </div>
+                  <h3 className="text-[18px] font-medium">
+                    {fullName}
+                  </h3>
 
-              <p
-                className="text-[14px] leading-relaxed"
-                style={{ color: "rgba(24,26,22,0.68)" }}
-              >
-                {person.bio}
-              </p>
-            </div>
-          ))}
-        </Reveal>
+                  <div
+                    className="mt-1 mb-3 text-[13px]"
+                    style={{ color: "var(--public-gold)" }}
+                  >
+                    {person.role}
+                  </div>
+
+                  {person.description && (
+                    <p
+                      className="text-[14px] leading-relaxed"
+                      style={{ color: "rgba(24,26,22,0.68)" }}
+                    >
+                      {person.description}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </Reveal>
+        )}
       </div>
     </section>
   );

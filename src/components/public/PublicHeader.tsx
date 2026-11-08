@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+
+import { useAuth } from "../../context/AuthContext";
+import { useApplyModal } from "../apply/ApplyModalContext";
+import HeaderShell from "../header/HeaderShell";
+import HeaderLogo from "../header/HeaderLogo";
+import PublicNav from "../header/PublicNav";
+import AuthedNav from "../header/AuthedNav";
 
 const SECTIONS = [
   { id: "overview", label: "Overview" },
@@ -10,25 +17,54 @@ const SECTIONS = [
 ];
 
 interface PublicHeaderProps {
-  companyName: string;
+  onMenuClick?: () => void;
 }
 
-export default function PublicHeader({ companyName }: PublicHeaderProps) {
-  const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+function HamburgerButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="rounded-md p-2 text-ink-700 hover:bg-ink-100 md:hidden"
+      aria-label="Open menu"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-5 w-5"
+      >
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <line x1="3" y1="12" x2="21" y2="12" />
+        <line x1="3" y1="18" x2="21" y2="18" />
+      </svg>
+    </button>
+  );
+}
+
+export default function PublicHeader({ onMenuClick }: PublicHeaderProps) {
+  const { user, isAuthenticated, logout } = useAuth();
+  const { open: openApply } = useApplyModal();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
   const [active, setActive] = useState<string>("");
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  const handleLogout = () => {
+    logout();
+    navigate("/", { replace: true });
+  };
 
   useEffect(() => {
     const targets = SECTIONS.map((s) =>
       document.getElementById(s.id),
     ).filter(Boolean) as HTMLElement[];
+
+    if (targets.length === 0) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -41,126 +77,68 @@ export default function PublicHeader({ companyName }: PublicHeaderProps) {
 
     targets.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [pathname]);
 
   const scrollTo = (id: string) => {
-    document
-      .getElementById(id)
-      ?.scrollIntoView({ behavior: "smooth" });
-    setMenuOpen(false);
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
+  const leftSlot = (
+    <>
+      {onMenuClick && <HamburgerButton onClick={onMenuClick} />}
+      <HeaderLogo to={isAuthenticated ? "/dashboard" : "/"} />
+    </>
+  );
+
+  if (isAuthenticated && user) {
+    return (
+      <HeaderShell
+        left={leftSlot}
+        right={<AuthedNav user={user} onLogout={handleLogout} />}
+      />
+    );
+  }
+
+  const publicRight = (
+    <>
+      <button
+        type="button"
+        onClick={openApply}
+        className="hidden rounded-lg border border-brand-500 bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 sm:inline-block"
+      >
+        Join the talent pool
+      </button>
+      <PublicNav />
+    </>
+  );
+
+  const publicBottom = (
+    <nav className="flex items-center gap-1">
+      {SECTIONS.map((s) => (
+        <button
+          key={s.id}
+          type="button"
+          onClick={() => scrollTo(s.id)}
+          className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+            active === s.id
+              ? "text-brand-600"
+              : "text-ink-700 hover:bg-ink-100"
+          }`}
+        >
+          {s.label}
+        </button>
+      ))}
+    </nav>
+  );
+
+  const showSections = pathname === "/";
+
   return (
-    <header
-      className={`sticky top-0 z-20 border-b backdrop-blur-md transition-shadow ${
-        scrolled ? "shadow-[0_6px_24px_rgba(24,26,22,0.08)]" : ""
-      }`}
-      style={{
-        background: "rgba(246,243,236,0.92)",
-        borderColor: "var(--public-line)",
-      }}
-    >
-      <div className="mx-auto flex max-w-[1120px] items-center justify-between px-8 py-5">
-        <div
-          className="text-[22px] font-semibold tracking-tight"
-          style={{ fontFamily: "'Fraunces', serif" }}
-        >
-          {companyName}
-          <span style={{ color: "var(--public-gold)" }}>
-            {" "}
-            · Talent
-          </span>
-        </div>
-
-        <nav className="hidden items-center gap-8 text-[15px] md:flex">
-          {SECTIONS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => scrollTo(s.id)}
-              className="group relative pb-1 transition-opacity hover:opacity-100"
-              style={{
-                opacity: active === s.id ? 1 : 0.75,
-              }}
-            >
-              {s.label}
-              <span
-                className="absolute bottom-0 left-0 h-[1.5px] transition-all"
-                style={{
-                  width: active === s.id ? "100%" : "0",
-                  background: "var(--public-gold)",
-                }}
-              />
-            </button>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <Link
-            to="/register/job-seeker"
-            className="hidden rounded-sm px-5 py-2.5 text-sm transition-transform hover:-translate-y-px md:inline-block"
-            style={{
-                background: "var(--public-ink)",
-                color: "var(--public-paper)",
-            }}
-            >
-            Join the pool
-            </Link>
-
-          <button
-            type="button"
-            aria-label="Toggle menu"
-            onClick={() => setMenuOpen((v) => !v)}
-            className="flex h-6 w-8 flex-col items-center justify-center gap-1.5 md:hidden"
-          >
-            <span
-              className={`block h-[2px] w-full transition ${
-                menuOpen ? "translate-y-[8px] rotate-45" : ""
-              }`}
-              style={{ background: "var(--public-ink)" }}
-            />
-            <span
-              className={`block h-[2px] w-full transition ${
-                menuOpen ? "opacity-0" : ""
-              }`}
-              style={{ background: "var(--public-ink)" }}
-            />
-            <span
-              className={`block h-[2px] w-full transition ${
-                menuOpen ? "-translate-y-[8px] -rotate-45" : ""
-              }`}
-              style={{ background: "var(--public-ink)" }}
-            />
-          </button>
-        </div>
-      </div>
-
-      {menuOpen && (
-        <div
-          className="border-t md:hidden"
-          style={{ borderColor: "var(--public-line)" }}
-        >
-          {SECTIONS.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              onClick={() => scrollTo(s.id)}
-              className="block w-full border-t px-5 py-4 text-left text-[15px] first:border-t-0"
-              style={{ borderColor: "var(--public-line)" }}
-            >
-              {s.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => scrollTo("apply")}
-            className="block w-full border-t px-5 py-4 text-left text-[15px] font-medium"
-            style={{ borderColor: "var(--public-line)" }}
-          >
-            Join the pool
-          </button>
-        </div>
-      )}
-    </header>
+    <HeaderShell
+      left={leftSlot}
+      right={publicRight}
+      bottom={showSections ? publicBottom : undefined}
+    />
   );
 }

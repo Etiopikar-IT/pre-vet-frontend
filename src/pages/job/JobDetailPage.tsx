@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
@@ -9,6 +10,8 @@ import JobSection from "../../components/jobs/JobSection";
 import JobDetailHeader from "../../components/jobs/jobDetail/JobDetailHeader";
 import JobApplyCTA from "../../components/jobs/jobDetail/JobApplyCTA";
 import JobOwnerActions from "../../components/jobs/jobDetail/JobOwnerActions";
+import ApplyModal from "../../components/jobs/jobDetail/ApplyModal";
+import PublicHeader from "../../components/public/PublicHeader";
 
 interface JobDetail {
   id: number;
@@ -59,6 +62,7 @@ function formatDate(value: string | null): string {
 export default function JobDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user } = useAuth();
+  const [applyOpen, setApplyOpen] = useState(false);
 
   const { data: job, loading, error } = useDetail<JobDetail>(
     endpoints.jobs.list,
@@ -90,6 +94,7 @@ export default function JobDetailPage() {
 
   if (!job) {
     return (
+      
       <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-12">
         <div className="mx-auto max-w-3xl">
           <div className="rounded-2xl border border-line bg-surface p-12 text-center">
@@ -109,68 +114,88 @@ export default function JobDetailPage() {
     user?.user_type === "COMPANY" && user.company_id === job.company;
 
   const canApply =
-    job.status === "PUBLISHED" && user?.user_type === "JOB_SEEKER";
+    job.status === "PUBLISHED" &&
+    !isOwner &&
+    (user == null || user.user_type === "JOB_SEEKER");
 
   let actions = null;
   if (canApply) {
-    actions = <JobApplyCTA jobId={job.id} />;
+    actions = (
+      <JobApplyCTA
+        onApply={() => setApplyOpen(true)}
+        isAnonymous={user == null}
+      />
+    );
   } else if (isOwner) {
     actions = <JobOwnerActions jobId={job.id} />;
   }
 
   return (
-    <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-10">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-6">
-          <BackLink to="/jobs" label="Back to jobs" />
+    <>
+    <PublicHeader />
+      <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-10">
+        <div className="mx-auto max-w-3xl">
+          <div className="mb-6">
+            <BackLink to="/jobs" label="Back to jobs" />
+          </div>
+
+          <JobDetailHeader
+            companyName={job.company_name}
+            companyLogo={job.company_logo}
+            title={job.title}
+            location={job.location}
+            employmentType={job.employment_type}
+            status={job.status}
+            salary={formatSalary(job)}
+            deadline={
+              job.application_deadline
+                ? formatDate(job.application_deadline)
+                : "Open until filled"
+            }
+            posted={formatDate(job.created_at)}
+            rejectionReason={job.rejection_reason}
+            actions={actions}
+          />
+
+          {job.description && (
+            <JobSection title="About the role">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
+                {job.description}
+              </p>
+            </JobSection>
+          )}
+
+          {job.responsibilities && (
+            <JobSection title="Responsibilities">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
+                {job.responsibilities}
+              </p>
+            </JobSection>
+          )}
+
+          {job.requirements && (
+            <JobSection title="Requirements">
+              <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
+                {job.requirements}
+              </p>
+            </JobSection>
+          )}
+
+          <p className="mt-8 text-center text-xs text-ink-400">
+            Posted {formatDate(job.created_at)}
+          </p>
         </div>
 
-        <JobDetailHeader
-          companyName={job.company_name}
-          companyLogo={job.company_logo}
-          title={job.title}
-          location={job.location}
-          employmentType={job.employment_type}
-          status={job.status}
-          salary={formatSalary(job)}
-          deadline={
-            job.application_deadline
-              ? formatDate(job.application_deadline)
-              : "Open until filled"
-          }
-          posted={formatDate(job.created_at)}
-          rejectionReason={job.rejection_reason}
-          actions={actions}
-        />
-
-        {job.description && (
-          <JobSection title="About the role">
-            <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
-              {job.description}
-            </p>
-          </JobSection>
+        {canApply && (
+          <ApplyModal
+            jobId={job.id}
+            jobTitle={job.title}
+            companyName={job.company_name}
+            open={applyOpen}
+            onClose={() => setApplyOpen(false)}
+          />
         )}
-
-        {job.responsibilities && (
-          <JobSection title="Responsibilities">
-            <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
-              {job.responsibilities}
-            </p>
-          </JobSection>
-        )}
-
-        {job.requirements && (
-          <JobSection title="Requirements">
-            <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
-              {job.requirements}
-            </p>
-          </JobSection>
-        )}
-
-        <p className="mt-8 text-center text-xs text-ink-400">
-          Posted {formatDate(job.created_at)}
-        </p>
       </div>
-    </div>
+    </>
   );
 }

@@ -3,13 +3,15 @@ import { Outlet } from "react-router-dom";
 
 import Header from "../components/Header";
 import Sidebar from "../components/sidebar/Sidebar";
+import { useAuth } from "../context/AuthContext";
 
 export default function AppLayout() {
+  const { user } = useAuth();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(() => {
-    // Persist across navigations
-    return localStorage.getItem("sidebar_collapsed") === "1";
-  });
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem("sidebar_collapsed") === "1",
+  );
 
   const toggleCollapse = () => {
     setCollapsed((prev) => {
@@ -18,6 +20,8 @@ export default function AppLayout() {
       return next;
     });
   };
+
+  if (!user) return null;
 
   return (
     <div className="flex min-h-screen flex-col bg-page text-ink-800">
@@ -28,7 +32,6 @@ export default function AppLayout() {
         onToggleCollapse={toggleCollapse}
       />
 
-      {/* Content column pushes right of the sidebar — width changes with collapse */}
       <div
         className={[
           "flex flex-1 flex-col transition-[padding] duration-200",
@@ -40,8 +43,6 @@ export default function AppLayout() {
         <main className="flex-1">
           <Outlet />
         </main>
-
-    
       </div>
     </div>
   );

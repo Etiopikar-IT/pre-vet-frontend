@@ -16,6 +16,8 @@ export const endpoints = {
     notifications: "/accounts/notifications/",
     notificationsUnreadCount: "/accounts/notifications/unread_count/",
     notificationsMarkAllRead: "/accounts/notifications/mark_all_read/",
+    publicTalentPool: "/accounts/public/talent-pool/",
+    team: "/accounts/team/",
   },
 
   jobs: {
@@ -27,6 +29,7 @@ export const endpoints = {
     list: "/applications/",
     detail: (id: number | string) => `/applications/${id}/`,
   },
+
   news: {
     list: "/news/",
     detail: (slug: string) => `/news/${slug}/`,

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { api } from "../../api/api";
 import { endpoints } from "../../api/endpoints";
+import { useAuth } from "../../context/AuthContext";
 import SearchBar from "../../components/jobs/jobList/SearchBar";
 import LocationPicker from "../../components/jobs/jobList/LocationPicker";
 import FilterPillGroup from "../../components/jobs/jobList/FilterPillGroup";
@@ -10,8 +11,12 @@ import ViewToggle from "../../components/jobs/jobList/ViewToggle";
 import ResultsHeader from "../../components/jobs/jobList/ResultsHeader";
 import JobCardList from "../../components/jobs/jobList/JobCardList";
 import type { JobCardData } from "../../components/jobs/jobList/JobCard";
+import PublicHeader from "../../components/public/PublicHeader";
 
 export default function JobListPage() {
+  const { user } = useAuth();
+  const isGuest = user == null;
+
   // Raw input
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
@@ -33,9 +38,6 @@ export default function JobListPage() {
     const params = new URLSearchParams();
 
     if (debouncedQuery) {
-      // The backend JobFilter doesn't have a free-text search field,
-      // so we lean on `company_name` as a proxy. If you want true
-      // full-text search, add a `search` filter on the backend.
       params.set("company_name", debouncedQuery);
     }
     if (location) params.set("location", location);
@@ -81,53 +83,56 @@ export default function JobListPage() {
   }, [url]);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
-      {/* Top search bar */}
-      <SearchBar value={query} onChange={setQuery} />
+    <>
+      {isGuest && <PublicHeader />}
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        {/* Top search bar */}
+        <SearchBar value={query} onChange={setQuery} />
 
-      {/* Filters row */}
-      <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <LocationPicker value={location} onChange={setLocation} />
+        {/* Filters row */}
+        <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+            <LocationPicker value={location} onChange={setLocation} />
 
-          <div className="hidden h-6 w-px bg-line lg:block" />
+            <div className="hidden h-6 w-px bg-line lg:block" />
 
-          <div className="flex-1">
-            <FilterPillGroup
-              employmentType={employmentType}
-              onEmploymentTypeChange={setEmploymentType}
-              salaryCurrency={salaryCurrency}
-              onSalaryCurrencyChange={setSalaryCurrency}
-            />
+            <div className="flex-1">
+              <FilterPillGroup
+                employmentType={employmentType}
+                onEmploymentTypeChange={setEmploymentType}
+                salaryCurrency={salaryCurrency}
+                onSalaryCurrencyChange={setSalaryCurrency}
+              />
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Results header + controls */}
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <ResultsHeader count={jobs?.length ?? 0} loading={loading} />
+        {/* Results header + controls */}
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <ResultsHeader count={jobs?.length ?? 0} loading={loading} />
 
-        <div className="flex items-center gap-3">
-          <SortDropdown value={ordering} onChange={setOrdering} />
-          <ViewToggle value={view} onChange={setView} />
+          <div className="flex items-center gap-3">
+            <SortDropdown value={ordering} onChange={setOrdering} />
+            <ViewToggle value={view} onChange={setView} />
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
+
+        {/* Results */}
+        <div className="mt-5">
+          <JobCardList
+            jobs={jobs ?? []}
+            loading={loading}
+            emptyMessage="No jobs match your search. Try adjusting your filters."
+          />
         </div>
       </div>
-
-      {/* Error */}
-      {error && (
-        <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {error}
-        </div>
-      )}
-
-      {/* Results */}
-      <div className="mt-5">
-        <JobCardList
-          jobs={jobs ?? []}
-          loading={loading}
-          emptyMessage="No jobs match your search. Try adjusting your filters."
-        />
-      </div>
-    </div>
+    </>
   );
 }
