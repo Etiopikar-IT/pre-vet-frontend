@@ -18,13 +18,22 @@ interface TalentPoolResponse {
 export default function ApplyModal() {
   const { isOpen, close } = useApplyModal();
 
+  // Existing
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [sector, setSector] = useState("");
-  const [role, setRole] = useState("");
   const [link, setLink] = useState("");
   const [cvFile, setCvFile] = useState<File | null>(null);
   const [message, setMessage] = useState("");
+
+  // New — taxonomy + filters
+  const [category, setCategory] = useState("");
+  const [sector, setSector] = useState("");
+  const [role, setRole] = useState("");
+  const [careerStatus, setCareerStatus] = useState("");
+  const [experienceLevel, setExperienceLevel] = useState("");
+  const [location, setLocation] = useState("");
+  const [workMode, setWorkMode] = useState("");
+
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
 
@@ -33,6 +42,10 @@ export default function ApplyModal() {
     loading: submitting,
     error: serverError,
   } = useCreate<TalentPoolResponse>();
+
+  /* Cascades derived from config */
+  const categorySectors =
+    CONFIG.categories.find((c) => c.name === category)?.sectors ?? [];
 
   const sectorRoles =
     CONFIG.sectors.find((s) => s.name === sector)?.roles ?? [];
@@ -44,7 +57,7 @@ export default function ApplyModal() {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
   ];
 
-  /* Scroll lock + Escape — depends only on `isOpen` and the stable `close`. */
+  /* Scroll lock + Escape */
   useEffect(() => {
     if (!isOpen) return;
     const prev = document.body.style.overflow;
@@ -59,17 +72,21 @@ export default function ApplyModal() {
     };
   }, [isOpen, close]);
 
-  /* Reset the LOCAL form state only when the modal closes.
-     No `resetCreate` in the deps — it changes identity every render. */
+  /* Reset on close */
   useEffect(() => {
     if (isOpen) return;
     setFullName("");
     setEmail("");
-    setSector("");
-    setRole("");
     setLink("");
     setCvFile(null);
     setMessage("");
+    setCategory("");
+    setSector("");
+    setRole("");
+    setCareerStatus("");
+    setExperienceLevel("");
+    setLocation("");
+    setWorkMode("");
     setErrors({});
     setSubmitted(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -106,8 +123,14 @@ export default function ApplyModal() {
     if (!email.trim()) next.email = "Enter your email address.";
     else if (!emailPattern.test(email))
       next.email = "Enter a valid email address.";
+    if (!category) next.category = "Choose a category.";
     if (!sector) next.sector = "Choose a sector.";
     if (!role) next.role = "Choose the closest role.";
+    if (!experienceLevel) next.experienceLevel = "Pick your level.";
+    if (!location) next.location = "Choose a location.";
+    if (careerStatus && careerStatus === "" /* optional → skip */) {
+      // career status is optional; no error
+    }
     if (link && !/^https?:\/\/.+/.test(link))
       next.link = "Include https:// at the start of the link.";
 
@@ -122,8 +145,13 @@ export default function ApplyModal() {
     const formData = new FormData();
     formData.append("full_name", fullName.trim());
     formData.append("email", email.trim());
+    formData.append("category", category);
     formData.append("sector", sector);
     formData.append("role", role);
+    formData.append("career_status", careerStatus);
+    formData.append("experience_level", experienceLevel);
+    formData.append("location", location);
+    if (workMode) formData.append("work_mode", workMode);
     if (link) formData.append("link", link.trim());
     if (message) formData.append("message", message.trim());
     if (cvFile) formData.append("cv", cvFile);
@@ -140,6 +168,12 @@ export default function ApplyModal() {
     "w-full rounded-lg border border-line bg-surface px-3.5 py-2.5 text-sm text-ink-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 disabled:cursor-not-allowed disabled:opacity-60";
   const labelClass = "text-sm font-medium text-ink-700";
   const errorClass = "min-h-[16px] text-xs text-red-600";
+  const chipBase =
+    "rounded-full border px-3 py-1.5 text-xs font-medium transition";
+  const chipIdle =
+    "border-line bg-surface text-ink-700 hover:border-brand-300 hover:bg-brand-50";
+  const chipActive =
+    "border-brand-500 bg-brand-500 text-white";
 
   return (
     <div
@@ -197,16 +231,19 @@ export default function ApplyModal() {
                 <button
                   type="button"
                   onClick={() => {
-                    // Reset only what the modal owns — the hook state
-                    // is refreshed automatically on next successful create.
                     setSubmitted(false);
                     setFullName("");
                     setEmail("");
-                    setSector("");
-                    setRole("");
                     setLink("");
                     setCvFile(null);
                     setMessage("");
+                    setCategory("");
+                    setSector("");
+                    setRole("");
+                    setCareerStatus("");
+                    setExperienceLevel("");
+                    setLocation("");
+                    setWorkMode("");
                     setErrors({});
                   }}
                   className="rounded-lg border border-brand-500 px-4 py-2 text-sm font-medium text-brand-600 hover:bg-brand-50"
@@ -247,6 +284,31 @@ export default function ApplyModal() {
               errorClass={errorClass}
             />
 
+            {/* Category → Sector → Role cascade */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="m-category" className={labelClass}>
+                Category
+              </label>
+              <select
+                id="m-category"
+                value={category}
+                onChange={(e) => {
+                  setCategory(e.target.value);
+                  setSector("");
+                  setRole("");
+                }}
+                className={inputClass}
+              >
+                <option value="">Select a category</option>
+                {CONFIG.categories.map((c) => (
+                  <option key={c.name} value={c.name}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <div className={errorClass}>{errors.category ?? ""}</div>
+            </div>
+
             <div className="flex flex-col gap-1.5">
               <label htmlFor="m-sector" className={labelClass}>
                 Sector
@@ -258,14 +320,21 @@ export default function ApplyModal() {
                   setSector(e.target.value);
                   setRole("");
                 }}
+                disabled={!category}
                 className={inputClass}
               >
-                <option value="">Select a sector</option>
-                {CONFIG.sectors.map((s) => (
-                  <option key={s.name} value={s.name}>
-                    {s.name}
-                  </option>
-                ))}
+                {!category ? (
+                  <option value="">Select a category first</option>
+                ) : (
+                  <>
+                    <option value="">Select a sector</option>
+                    {categorySectors.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
               <div className={errorClass}>{errors.sector ?? ""}</div>
             </div>
@@ -296,6 +365,93 @@ export default function ApplyModal() {
                 )}
               </select>
               <div className={errorClass}>{errors.role ?? ""}</div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="m-experience" className={labelClass}>
+                Experience level
+              </label>
+              <select
+          id="m-experience"
+          value={experienceLevel}
+          onChange={(e) => setExperienceLevel(e.target.value)}
+          className={inputClass}
+        >
+          <option value="">Select your level</option>
+          {CONFIG.experienceLevels.map((lvl) => (
+            <option key={lvl.value} value={lvl.value}>
+              {lvl.label}
+            </option>
+          ))}
+        </select>
+              <div className={errorClass}>
+                {errors.experienceLevel ?? ""}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="m-career" className={labelClass}>
+                Career status{" "}
+                <span className="font-normal text-ink-400">(optional)</span>
+              </label>
+             <select
+  id="m-career"
+  value={careerStatus}
+  onChange={(e) => setCareerStatus(e.target.value)}
+  className={inputClass}
+>
+  <option value="">Select your status</option>
+  {CONFIG.careerStatuses.map((s) => (
+    <option key={s.value} value={s.value}>
+      {s.label}
+    </option>
+  ))}
+</select>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="m-location" className={labelClass}>
+                Location
+              </label>
+              <select
+                id="m-location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Select a location</option>
+                {CONFIG.locations.map((l) => (
+                  <option key={l} value={l}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+              <div className={errorClass}>{errors.location ?? ""}</div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <span className={labelClass}>
+                Work mode{" "}
+                <span className="font-normal text-ink-400">(optional)</span>
+              </span>
+              <div className="flex flex-wrap gap-2">
+  {CONFIG.workModes.map((mode) => {
+    const active = workMode === mode.value;
+    return (
+      <button
+        key={mode.value}
+        type="button"
+        onClick={() =>
+          setWorkMode((prev) => (prev === mode.value ? "" : mode.value))
+        }
+        className={`${chipBase} ${active ? chipActive : chipIdle}`}
+        aria-pressed={active}
+      >
+        {mode.label}
+      </button>
+    );
+  })}
+</div>
             </div>
 
             <div className="flex flex-col gap-1.5 md:col-span-2">

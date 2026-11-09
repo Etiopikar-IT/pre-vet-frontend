@@ -13,6 +13,7 @@ import AfterYouJoinSection from "../components/public/AfterYouJoinSection";
 import NoteSection from "../components/public/NoteSection";
 import ApplySection from "../components/public/ApplySection";
 import PublicFooter from "../components/public/PublicFooter";
+import { FAQSection } from "../components/public/faq";
 
 export default function PublicLandingPage() {
   useEffect(() => {
@@ -36,10 +37,12 @@ export default function PublicLandingPage() {
       }}
     >
       <ScrollProgress />
-      <PublicHeader companyName={CONFIG.companyName} />
+      <PublicHeader 
+      // companyName={CONFIG.companyName} 
+      />
 
       <Hero
-        onJoinClick={() => scrollTo("apply")}
+        // onJoinClick={() => scrollTo("apply")}
         onProcessClick={() => scrollTo("process")}
       />
 
@@ -51,6 +54,7 @@ export default function PublicLandingPage() {
       <NoteSection />
       <ApplySection />
 
+      <FAQSection />
       <PublicFooter />
       <BackToTop />
     </div>

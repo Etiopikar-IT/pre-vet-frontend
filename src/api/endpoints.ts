@@ -18,6 +18,10 @@ export const endpoints = {
     notificationsMarkAllRead: "/accounts/notifications/mark_all_read/",
     publicTalentPool: "/accounts/public/talent-pool/",
     team: "/accounts/team/",
+     faqs: "/accounts/faqs/",
+    faqDetail: (id: number | string) => `/accounts/faqs/${id}/`,
+        publicStats: "/accounts/public/stats/",
+
   },
 
   jobs: {
