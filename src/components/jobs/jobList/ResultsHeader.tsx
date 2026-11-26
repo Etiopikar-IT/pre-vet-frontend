@@ -5,7 +5,7 @@ interface ResultsHeaderProps {
 
 export default function ResultsHeader({ count, loading }: ResultsHeaderProps) {
   return (
-    <h2 className="text-base font-semibold text-ink-800">
+    <h2 className="break-words text-sm font-semibold text-ink-800 sm:text-base">
       {loading
         ? "Searching..."
         : `Showing ${count} job ${count === 1 ? "result" : "results"}`}
