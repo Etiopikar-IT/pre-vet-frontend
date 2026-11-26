@@ -127,7 +127,7 @@ export default function JobDetailPage() {
       />
     );
   } else if (isOwner) {
-    actions = <JobOwnerActions jobId={job.id} />;
+    actions = <JobOwnerActions  />;
   }
 
   return (
