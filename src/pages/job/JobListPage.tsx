@@ -17,6 +17,7 @@ export default function JobListPage() {
   const { user } = useAuth();
   const isGuest = user == null;
 
+  // Raw input
   const [query, setQuery] = useState("");
   const [location, setLocation] = useState("");
   const [employmentType, setEmploymentType] = useState("");
@@ -24,6 +25,7 @@ export default function JobListPage() {
   const [ordering, setOrdering] = useState("");
   const [view, setView] = useState<"grid" | "list">("grid");
 
+  // Debounced query
   const [debouncedQuery, setDebouncedQuery] = useState("");
 
   useEffect(() => {
@@ -31,10 +33,13 @@ export default function JobListPage() {
     return () => clearTimeout(t);
   }, [query]);
 
+  // Build URL params
   const url = useMemo(() => {
     const params = new URLSearchParams();
 
-    if (debouncedQuery) params.set("company_name", debouncedQuery);
+    if (debouncedQuery) {
+      params.set("company_name", debouncedQuery);
+    }
     if (location) params.set("location", location);
     if (employmentType) params.set("employment_type", employmentType);
     if (salaryCurrency) params.set("salary_currency", salaryCurrency);
@@ -44,6 +49,7 @@ export default function JobListPage() {
     return qs ? `${endpoints.jobs.list}?${qs}` : endpoints.jobs.list;
   }, [debouncedQuery, location, employmentType, salaryCurrency, ordering]);
 
+  // Fetch
   const [jobs, setJobs] = useState<JobCardData[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,18 +85,18 @@ export default function JobListPage() {
   return (
     <>
       {isGuest && <PublicHeader />}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        {/* Top search bar */}
         <SearchBar value={query} onChange={setQuery} />
 
-        <div className="mt-5 rounded-2xl border border-line bg-surface p-3 sm:p-4">
+        {/* Filters row */}
+        <div className="mt-5 rounded-2xl border border-line bg-surface p-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-            <div className="min-w-0">
-              <LocationPicker value={location} onChange={setLocation} />
-            </div>
+            <LocationPicker value={location} onChange={setLocation} />
 
             <div className="hidden h-6 w-px bg-line lg:block" />
 
-            <div className="min-w-0 flex-1">
+            <div className="flex-1">
               <FilterPillGroup
                 employmentType={employmentType}
                 onEmploymentTypeChange={setEmploymentType}
@@ -101,6 +107,7 @@ export default function JobListPage() {
           </div>
         </div>
 
+        {/* Results header + controls */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <ResultsHeader count={jobs?.length ?? 0} loading={loading} />
 
@@ -110,13 +117,15 @@ export default function JobListPage() {
           </div>
         </div>
 
+        {/* Error */}
         {error && (
           <div className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
             {error}
           </div>
         )}
 
-        <div className="mt-5 min-w-0">
+        {/* Results */}
+        <div className="mt-5">
           <JobCardList
             jobs={jobs ?? []}
             loading={loading}

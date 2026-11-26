@@ -35,10 +35,10 @@ export default function JobCard({ job }: { job: JobCardData }) {
   return (
     <Link
       to={`/jobs/${job.id}`}
-      className="group flex h-full flex-col rounded-2xl border border-line bg-surface p-5 transition hover:border-brand-300 hover:shadow-sm"
+      className="group flex h-full w-full min-w-0 flex-col overflow-hidden rounded-2xl border border-line bg-surface p-4 transition hover:border-brand-300 hover:shadow-sm sm:p-5"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
           <p className="truncate text-xs text-ink-500">
             {job.company_name || "Unknown company"}
           </p>
@@ -47,22 +47,26 @@ export default function JobCard({ job }: { job: JobCardData }) {
           </h3>
         </div>
 
-        <CompanyAvatar
-          name={job.company_name}
-          logo={job.company_logo}
-          size="sm"
-        />
+        <span className="shrink-0">
+          <CompanyAvatar
+            name={job.company_name}
+            logo={job.company_logo}
+            size="sm"
+          />
+        </span>
       </div>
 
-      <p className="mt-3 text-sm font-medium text-brand-600">
+      <p className="mt-3 truncate text-sm font-medium text-brand-600">
         {formatSalary(job)}
       </p>
 
-      <div className="mt-auto flex flex-wrap items-center gap-2 pt-4">
-        <EmploymentTypeBadge type={job.employment_type} />
+      <div className="mt-auto flex min-w-0 flex-wrap items-center gap-2 pt-4">
+        <span className="min-w-0 max-w-full shrink">
+          <EmploymentTypeBadge type={job.employment_type} />
+        </span>
 
         {job.location && (
-          <span className="rounded-full bg-ink-100 px-2.5 py-1 text-[11px] font-medium text-ink-600">
+          <span className="max-w-full truncate rounded-full bg-ink-100 px-2.5 py-1 text-[11px] font-medium text-ink-600">
             {job.location}
           </span>
         )}
