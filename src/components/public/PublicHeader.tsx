@@ -203,7 +203,7 @@ export default function PublicHeader({ onMenuClick }: PublicHeaderProps) {
               Jobs
             </Link>
             <Link
-              to="/join-company"
+              to="/register/company"
               className="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-100"
             >
               Join as a company
