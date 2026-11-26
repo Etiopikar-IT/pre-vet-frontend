@@ -110,7 +110,7 @@ export default function ApplySection() {
   };
 
   const inputClass =
-    "rounded-sm border px-3.5 py-3 text-[15px] outline-none transition focus:border-[var(--public-teal)] focus:ring-[3px] focus:ring-[rgba(31,74,68,0.14)]";
+    "w-full rounded-sm border px-3.5 py-3 text-[15px] outline-none transition focus:border-[var(--public-teal)] focus:ring-[3px] focus:ring-[rgba(31,74,68,0.14)]";
 
   const inputStyle = {
     background: "var(--public-paper)",
@@ -118,50 +118,50 @@ export default function ApplySection() {
     borderColor: "rgba(24,26,22,0.25)",
   };
 
-  const labelClass = "text-[13px] font-medium text-[rgba(24,26,22,0.85)]";
+  const labelClass =
+    "text-[13px] font-medium text-[rgba(24,26,22,0.85)]";
 
   return (
-    <section id="apply" className="px-8 py-24">
+    <section id="apply" className="px-4 py-16 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-[1120px]">
-        <Reveal className="mb-12">
+        <Reveal className="mb-8 sm:mb-12">
           <h2
-            className="mb-4 max-w-[18ch] text-[clamp(30px,4vw,46px)] leading-tight"
+            className="mb-3 max-w-[18ch] text-[clamp(26px,6vw,46px)] leading-tight sm:mb-4"
             style={{ fontFamily: "'Fraunces', serif", fontWeight: 500 }}
           >
             Ready to be on our radar?
           </h2>
           <p
-            className="max-w-[48ch] text-[16px] leading-relaxed"
+            className="max-w-[48ch] text-[15px] leading-relaxed sm:text-[16px]"
             style={{ color: "rgba(24,26,22,0.75)" }}
           >
-            Fill this in and we'll create your account automatically —
-            we'll email your login details so you can track your
-            application.
+            Fill this in and we'll create your account automatically — we'll
+            email your login details so you can track your application.
           </p>
         </Reveal>
 
         {submitted ? (
           <div
-            className="p-10"
+            className="rounded-sm p-6 sm:p-10"
             style={{
               background: "var(--public-teal)",
               color: "var(--public-paper)",
             }}
           >
             <h3
-              className="mb-2.5 text-[22px]"
+              className="mb-2.5 text-[20px] sm:text-[22px]"
               style={{ fontFamily: "'Fraunces', serif" }}
             >
               You're on our radar.
             </h3>
             <p
-              className="text-[14.5px] leading-relaxed"
+              className="text-[14px] leading-relaxed sm:text-[14.5px]"
               style={{ color: "rgba(246,243,236,0.85)" }}
             >
               Your details were saved and we've emailed your login
               credentials to <strong>{email}</strong>. You can now log in
-              to track your application and update your profile. Didn't
-              get the email? Check your spam folder, or use the{" "}
+              to track your application and update your profile. Didn't get
+              the email? Check your spam folder, or use the{" "}
               <Link to="/forgot-password" className="underline">
                 forgot password
               </Link>{" "}
@@ -177,14 +177,14 @@ export default function ApplySection() {
             </p>
           </div>
         ) : (
-          <Reveal className="grid gap-6 border p-10 md:grid-cols-2">
+          <Reveal className="rounded-sm border p-4 sm:p-6 md:p-10">
             <form
               onSubmit={handleSubmit}
               noValidate
-              className="grid gap-6 md:col-span-2 md:grid-cols-2"
+              className="grid gap-4 sm:gap-6"
             >
               <div
-                className="md:col-span-2 grid gap-6 border p-10 md:grid-cols-2"
+                className="grid gap-4 rounded-sm border p-4 sm:gap-6 sm:p-6 md:p-8 md:grid-cols-2"
                 style={{
                   background: "var(--public-paper-raised)",
                   borderColor: "var(--public-line)",
@@ -338,7 +338,7 @@ export default function ApplySection() {
                       className="sr-only"
                     />
                     <span
-                      className="truncate text-[13.5px]"
+                      className="min-w-0 flex-1 truncate text-[13px] sm:text-[13.5px]"
                       style={{ color: "rgba(24,26,22,0.75)" }}
                     >
                       {cvFile
@@ -349,7 +349,7 @@ export default function ApplySection() {
                       <button
                         type="button"
                         onClick={() => setCvFile(null)}
-                        className="ml-auto text-[12.5px] underline"
+                        className="text-[12.5px] underline"
                         style={{ color: "rgba(24,26,22,0.65)" }}
                       >
                         Remove
@@ -388,7 +388,7 @@ export default function ApplySection() {
 
                 {serverError && (
                   <div
-                    className="md:col-span-2 rounded-sm border p-3 text-[13px]"
+                    className="rounded-sm border p-3 text-[13px] md:col-span-2"
                     style={{
                       background: "rgba(220,38,38,0.06)",
                       borderColor: "rgba(220,38,38,0.35)",
@@ -399,19 +399,19 @@ export default function ApplySection() {
                   </div>
                 )}
 
-                <div className="flex flex-wrap items-center justify-between gap-5 md:col-span-2 md:mt-2">
+                <div className="flex flex-col gap-4 md:col-span-2 md:mt-2 md:flex-row md:items-center md:justify-between">
                   <div
                     className="max-w-[36ch] text-[12.5px]"
                     style={{ color: "rgba(24,26,22,0.55)" }}
                   >
-                    We'll only use this to consider you for future roles
-                    in your sector — see the privacy note above.
+                    We'll only use this to consider you for future roles in
+                    your sector — see the privacy note above.
                   </div>
 
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="rounded-sm px-7 py-3.5 text-[15px] font-medium transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-sm px-7 py-3.5 text-[15px] font-medium transition-transform hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 md:w-auto"
                     style={{
                       background: "var(--public-teal)",
                       color: "var(--public-paper)",
