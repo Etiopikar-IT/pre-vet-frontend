@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
 
-interface JobOwnerActionsProps {
-  jobId: number;
-}
+// interface JobOwnerActionsProps {
+//   jobId: number;
+// }
 
-export default function JobOwnerActions({ jobId }: JobOwnerActionsProps) {
+export default function JobOwnerActions() {
   return (
     <div className="flex flex-wrap gap-3">
       {/* <Link
