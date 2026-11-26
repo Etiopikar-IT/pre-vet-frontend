@@ -366,19 +366,19 @@ export default function CompanyJobsPage() {
                         )}
 
                         <div className="mt-6 flex flex-wrap gap-3 border-t border-line pt-5">
-                          <Link
+                          {/* <Link
                             to={`/jobs/${job.id}`}
                             className="rounded-lg bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600"
                           >
                             View public posting
-                          </Link>
+                          </Link> */}
 
-                          <Link
+                          {/* <Link
                             to={`/company/jobs/${job.id}/applications`}
                             className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-ink-700 transition hover:bg-ink-100"
                           >
                             View applications
-                          </Link>
+                          </Link> */}
 
                           <Link
                             to={`/company/jobs/${job.id}/edit`}
