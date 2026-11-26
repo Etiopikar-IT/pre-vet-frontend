@@ -206,7 +206,7 @@ export default function PublicHeader({ onMenuClick }: PublicHeaderProps) {
               to="/register/company"
               className="rounded-lg px-3 py-2 text-sm font-medium text-ink-700 hover:bg-ink-100"
             >
-              Join as a company
+            Join as a company
             </Link>
 
             {showSections && (
