@@ -90,7 +90,7 @@ export default function CompanyJobsPage() {
 
   if (jobsError) {
     return (
-      <div className="min-h-[calc(100vh-64px)] bg-page px-6 py-12">
+      <div className="min-h-[calc(100vh-64px)] bg-page px-4 py-12 sm:px-6">
         <div className="mx-auto max-w-5xl">
           <StatusBanner variant="error">{jobsError}</StatusBanner>
         </div>
@@ -115,22 +115,22 @@ export default function CompanyJobsPage() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_55%)]" />
 
         <div className="absolute inset-x-0 bottom-0">
-          <div className="mx-auto flex max-w-5xl flex-col gap-5 px-6 pb-8 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex items-end gap-4 sm:gap-5">
+          <div className="mx-auto flex max-w-5xl flex-col gap-4 px-4 pb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-5 sm:px-6 sm:pb-8">
+            <div className="flex min-w-0 items-end gap-3 sm:gap-5">
               {profile?.logo ? (
                 <img
                   src={profile.logo}
                   alt={profile.company_name}
-                  className="h-20 w-20 shrink-0 rounded-2xl border-4 border-white/90 object-cover shadow-lg sm:h-24 sm:w-24"
+                  className="h-16 w-16 shrink-0 rounded-2xl border-4 border-white/90 object-cover shadow-lg sm:h-24 sm:w-24"
                 />
               ) : (
-                <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border-4 border-white/90 bg-brand-50 text-3xl font-semibold text-brand-600 shadow-lg sm:h-24 sm:w-24">
+                <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-4 border-white/90 bg-brand-50 text-2xl font-semibold text-brand-600 shadow-lg sm:h-24 sm:w-24 sm:text-3xl">
                   {profile?.company_name?.charAt(0).toUpperCase() || "?"}
                 </div>
               )}
 
-              <div className="min-w-0 pb-1">
-                <h1 className="truncate text-2xl font-bold text-white drop-shadow sm:text-3xl">
+              <div className="min-w-0 flex-1 pb-1">
+                <h1 className="truncate text-xl font-bold text-white drop-shadow sm:text-3xl">
                   {profile?.company_name || "Company"}
                 </h1>
 
@@ -140,14 +140,14 @@ export default function CompanyJobsPage() {
                   </p>
                 )}
 
-                <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-white/85">
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-white/85">
                   {profile?.address && (
-                    <span className="inline-flex items-center gap-1.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                    <span className="inline-flex max-w-full items-center gap-1.5 truncate">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                       </svg>
-                      {profile.address}
+                      <span className="truncate">{profile.address}</span>
                     </span>
                   )}
 
@@ -156,14 +156,16 @@ export default function CompanyJobsPage() {
                       href={profile.website}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex items-center gap-1.5 transition hover:text-white"
+                      className="inline-flex max-w-full items-center gap-1.5 truncate transition hover:text-white"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5 shrink-0">
                         <circle cx="12" cy="12" r="10" />
                         <line x1="2" y1="12" x2="22" y2="12" />
                         <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
                       </svg>
-                      {profile.website.replace(/^https?:\/\//, "")}
+                      <span className="truncate">
+                        {profile.website.replace(/^https?:\/\//, "")}
+                      </span>
                     </a>
                   )}
                 </div>
@@ -176,7 +178,7 @@ export default function CompanyJobsPage() {
               </div>
             </div>
 
-            <div className="flex shrink-0 flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 sm:shrink-0">
               <Link
                 to="/company/jobs/new"
                 className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-brand-700 shadow-sm transition hover:bg-brand-50"
@@ -196,9 +198,9 @@ export default function CompanyJobsPage() {
       </div>
 
       {/* ---------- Content below ---------- */}
-      <div className="mx-auto max-w-5xl px-6 pt-8">
+      <div className="mx-auto max-w-5xl px-4 pt-8 sm:px-6">
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+          <div className="min-w-0">
             <h2 className="text-2xl font-bold text-ink-800">
               Posted jobs
             </h2>
@@ -251,7 +253,7 @@ export default function CompanyJobsPage() {
               const isExpanded = expandedId === job.id;
 
               return (
-                <li key={job.id}>
+                <li key={job.id} className="min-w-0">
                   <div
                     className={`overflow-hidden rounded-2xl border bg-surface transition ${
                       isExpanded
@@ -264,12 +266,12 @@ export default function CompanyJobsPage() {
                       onClick={() =>
                         setExpandedId(isExpanded ? null : job.id)
                       }
-                      className="flex w-full items-center justify-between gap-4 p-5 text-left transition hover:bg-ink-100/40"
+                      className="flex w-full items-center justify-between gap-3 p-4 text-left transition hover:bg-ink-100/40 sm:gap-4 sm:p-5"
                       aria-expanded={isExpanded}
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="text-base font-semibold text-ink-800">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                          <h3 className="min-w-0 truncate text-base font-semibold text-ink-800">
                             {job.title}
                           </h3>
                           <JobStatusBadge status={job.status} />
@@ -281,7 +283,7 @@ export default function CompanyJobsPage() {
                           />
 
                           {job.location && (
-                            <span className="rounded-full bg-ink-100 px-2.5 py-1 text-[11px] font-medium text-ink-600">
+                            <span className="max-w-full truncate rounded-full bg-ink-100 px-2.5 py-1 text-[11px] font-medium text-ink-600">
                               {job.location}
                             </span>
                           )}
@@ -305,7 +307,7 @@ export default function CompanyJobsPage() {
                     </button>
 
                     {isExpanded && (
-                      <div className="border-t border-line bg-page/40 p-5 sm:p-6">
+                      <div className="border-t border-line bg-page/40 p-4 sm:p-6">
                         {job.status === "REJECTED" &&
                           job.rejection_reason && (
                             <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
@@ -316,7 +318,7 @@ export default function CompanyJobsPage() {
                             </div>
                           )}
 
-                        <dl className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                        <dl className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
                           <Fact
                             label="Salary"
                             value={formatSalary(job)}
@@ -341,7 +343,7 @@ export default function CompanyJobsPage() {
 
                         {job.description && (
                           <ExpandedSection title="About the role">
-                            <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
+                            <p className="whitespace-pre-line break-words text-sm leading-relaxed text-ink-600">
                               {job.description}
                             </p>
                           </ExpandedSection>
@@ -349,7 +351,7 @@ export default function CompanyJobsPage() {
 
                         {job.responsibilities && (
                           <ExpandedSection title="Responsibilities">
-                            <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
+                            <p className="whitespace-pre-line break-words text-sm leading-relaxed text-ink-600">
                               {job.responsibilities}
                             </p>
                           </ExpandedSection>
@@ -357,7 +359,7 @@ export default function CompanyJobsPage() {
 
                         {job.requirements && (
                           <ExpandedSection title="Requirements">
-                            <p className="whitespace-pre-line text-sm leading-relaxed text-ink-600">
+                            <p className="whitespace-pre-line break-words text-sm leading-relaxed text-ink-600">
                               {job.requirements}
                             </p>
                           </ExpandedSection>
@@ -400,7 +402,7 @@ export default function CompanyJobsPage() {
 
 function Fact({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="min-w-0">
       <dt className="text-[11px] font-medium uppercase tracking-wide text-ink-400">
         {label}
       </dt>
@@ -419,7 +421,7 @@ function ExpandedSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="mb-5 last:mb-0">
+    <div className="mb-5 min-w-0 last:mb-0">
       <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-500">
         {title}
       </h3>
